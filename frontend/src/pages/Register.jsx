@@ -39,8 +39,8 @@ export default function Register() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
     setError('');
     
     if (password !== confirmPassword) {
@@ -52,22 +52,15 @@ export default function Register() {
       return;
     }
 
-    setLoading(true);
     try {
-      const result = await register(fullName, email, password, avatar);
-      setLoading(false);
-
-      if (result.success) {
+      const result = register(fullName, email, password, avatar);
+      if (result && result.success) {
         navigate('/email-verify');
       } else {
-        const errorMsg = typeof result.error === 'string' 
-          ? result.error 
-          : (result.error?.email?.[0] || result.error?.detail || result.error?.non_field_errors?.[0] || 'Registration failed. Please try again.');
-        setError(errorMsg);
+        setError('Registration failed. Please try again.');
       }
     } catch (err) {
-      setLoading(false);
-      setError('Registration encountered a network issue. Please try again.');
+      setError('Registration encountered an error. Please try again.');
     }
   };
 
