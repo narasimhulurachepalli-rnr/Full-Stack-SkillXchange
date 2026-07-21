@@ -58,47 +58,47 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = async (email, password) => {
+  const login = (email, password) => {
     setIsLoading(true);
     try {
-      // 1. Check local registered accounts
-      const registeredUsers = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
-      const foundLocal = registeredUsers.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+      let loggedUser = null;
+      try {
+        const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
+        const found = list.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+        if (found && found.user) loggedUser = found.user;
+      } catch (e) {}
 
-      if (foundLocal && foundLocal.user) {
-        setUser(foundLocal.user);
-        setTokens({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() });
-        setIsAuthenticated(true);
-        localStorage.setItem('skillxchange_user', JSON.stringify(foundLocal.user));
-        localStorage.setItem('skillxchange_tokens', JSON.stringify({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() }));
-        return { success: true };
+      if (!loggedUser) {
+        loggedUser = {
+          ...mockUser,
+          id: "user-" + Date.now(),
+          email: email,
+          full_name: email.includes('@') ? email.split('@')[0].toUpperCase() : email,
+          credits: 1,
+          is_verified: true
+        };
       }
 
-      // 2. Default login for any student account
-      const defaultUser = {
-        ...mockUser,
-        id: `user-${Date.now()}`,
-        email: email,
-        full_name: email.includes('@') ? email.split('@')[0].toUpperCase() : email,
-        credits: 1,
-        is_verified: true
-      };
-      setUser(defaultUser);
+      setUser(loggedUser);
       setTokens({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() });
       setIsAuthenticated(true);
-      localStorage.setItem('skillxchange_user', JSON.stringify(defaultUser));
-      localStorage.setItem('skillxchange_tokens', JSON.stringify({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() }));
+
+      try {
+        localStorage.setItem('skillxchange_user', JSON.stringify(loggedUser));
+        localStorage.setItem('skillxchange_tokens', JSON.stringify({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() }));
+      } catch (e) {}
+
       return { success: true };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (fullName, email, password, avatar = null) => {
+  const register = (fullName, email, password, avatar = null) => {
     setIsLoading(true);
     try {
       const newUser = {
-        id: `user-${Date.now()}`,
+        id: "user-" + Date.now(),
         email: email,
         full_name: fullName,
         bio: "Passionate learner trading skills on SkillXchange.",
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
         credits: 1,
         credit_history: [
           {
-            id: `tx-${Date.now()}`,
+            id: "tx-" + Date.now(),
             type: "WELCOME_BONUS",
             amount: 1,
             description: "Welcome Skill Credit Bonus (New Account)",
@@ -123,30 +123,23 @@ export const AuthProvider = ({ children }) => {
         is_verified: true
       };
 
-      // Background API sync attempt (non-blocking)
-      axios.post(`${API_BASE_URL}/auth/register/`, {
-        full_name: fullName,
-        email: email,
-        password: password,
-        confirm_password: password
-      }, { timeout: 2000 }).catch(() => {});
-
-      // Instant local session activation
       setUser(newUser);
       setTokens({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() });
       setIsAuthenticated(true);
 
-      localStorage.setItem('skillxchange_user', JSON.stringify(newUser));
-      localStorage.setItem('skillxchange_tokens', JSON.stringify({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() }));
-
-      // Save user in registered accounts list
-      const registeredUsers = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
-      registeredUsers.push({ email, password, user: newUser });
-      localStorage.setItem('skillxchange_all_users', JSON.stringify(registeredUsers));
+      try {
+        localStorage.setItem('skillxchange_user', JSON.stringify(newUser));
+        localStorage.setItem('skillxchange_tokens', JSON.stringify({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() }));
+        const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
+        list.push({ email: email.toLowerCase(), password, user: newUser });
+        localStorage.setItem('skillxchange_all_users', JSON.stringify(list));
+      } catch (e) {
+        console.warn("Storage notice:", e);
+      }
 
       return { success: true };
     } catch (err) {
-      return { success: false, error: "Registration failed" };
+      return { success: false, error: "Registration error" };
     } finally {
       setIsLoading(false);
     }
