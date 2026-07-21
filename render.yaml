@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: skillxchange-backend
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py migrate
+    startCommand: gunicorn skillxchange.wsgi:application
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority
+      - key: SECRET_KEY
+        value: django-insecure-skill-x-change-platform-prod-quality-key-2026
