@@ -4,11 +4,17 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(os.path.join(BASE_DIR, '.env'))
+except ImportError:
+    pass
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-skill-x-change-platform-prod-quality-key-2026')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -41,16 +47,15 @@ DATABASES = {
 }
 
 try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
-
-try:
     import mongoengine
     ATLAS_URI = "mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority"
     MONGODB_URI = os.environ.get('MONGODB_URI', ATLAS_URI)
-    mongoengine.connect(host=MONGODB_URI)
+    mongoengine.connect(
+        host=MONGODB_URI,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=10000,
+        socketTimeoutMS=10000
+    )
     print(">>> MongoDB Atlas connection successfully established.")
 except Exception as e:
     print(f">>> MongoEngine connection notice: {e}")

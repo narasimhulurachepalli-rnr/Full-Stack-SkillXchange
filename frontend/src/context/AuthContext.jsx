@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -44,8 +45,6 @@ export const AuthProvider = ({ children }) => {
       setUser(JSON.parse(savedUser));
       setIsAuthenticated(true);
     } else {
-      // For design phase demo, default login to mock user so they don't get stuck on login screens
-      // They can still log out and test logins.
       setUser(mockUser);
       setIsAuthenticated(true);
     }
@@ -56,13 +55,13 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     try {
       // Attempt login
-      const response = await axios.post('http://127.0.0.1:8000/api/auth/login/', {
+      const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
         username: email,
         password: password
       });
       
       const { access, refresh } = response.data;
-      const profileResponse = await axios.get('http://127.0.0.1:8000/api/auth/profile/', {
+      const profileResponse = await axios.get(`${API_BASE_URL}/auth/profile/`, {
         headers: { Authorization: `Bearer ${access}` }
       });
       
@@ -94,7 +93,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (fullName, email, password) => {
     setIsLoading(true);
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/auth/register/', {
+      const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
         full_name: fullName,
         email: email,
         password: password,
@@ -147,13 +146,12 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     try {
       if (tokens && tokens.access && tokens.access !== "mock") {
-        const response = await axios.put('http://127.0.0.1:8000/api/auth/profile/', profileData, {
+        const response = await axios.put(`${API_BASE_URL}/auth/profile/`, profileData, {
           headers: { Authorization: `Bearer ${tokens.access}` }
         });
         setUser(response.data);
         localStorage.setItem('skillxchange_user', JSON.stringify(response.data));
       } else {
-        // Mock state updates
         const updated = { ...user, ...profileData };
         setUser(updated);
         localStorage.setItem('skillxchange_user', JSON.stringify(updated));

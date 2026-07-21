@@ -1,6 +1,24 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://skillxchange-backend.onrender.com/api').replace(/\/$/, '');
+
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+});
+
+apiClient.interceptors.response.use(
+  response => response,
+  async error => {
+    const { config } = error;
+    if (config && (!config._retryCount || config._retryCount < 2) && (!error.response || error.response.status >= 500)) {
+      config._retryCount = (config._retryCount || 0) + 1;
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return apiClient(config);
+    }
+    return Promise.reject(error);
+  }
+);
 
 const getHeaders = () => {
   const tokenData = localStorage.getItem('skillxchange_tokens');
