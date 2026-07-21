@@ -79,6 +79,52 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Admin Wallet & Credit Management Panel */}
+        <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+              <h3 className="font-bold text-slate-850 font-outfit text-base">User Wallets & Credit Administration</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Manage student balances, freeze suspicious wallets, and issue manual credit rewards.</p>
+            </div>
+          </div>
+
+          <div className="divide-y divide-slate-100">
+            {MOCK_USERS.map((u) => (
+              <div key={`wallet-${u.id}`} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <img src={u.avatar} alt={u.full_name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                  <div>
+                    <p className="font-bold text-slate-800">{u.full_name}</p>
+                    <p className="text-[11px] text-slate-400">{u.email}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <span className="font-bold font-outfit text-indigo-600 text-sm">3.00 Credits</span>
+                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">Active</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button 
+                      onClick={() => alert(`Granted +1.0 Credit to ${u.full_name}`)}
+                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all"
+                    >
+                      + Add Credit
+                    </button>
+                    <button 
+                      onClick={() => alert(`Wallet frozen for ${u.full_name}`)}
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-lg font-semibold transition-all border border-slate-200"
+                    >
+                      Freeze
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

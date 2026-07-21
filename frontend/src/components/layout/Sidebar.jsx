@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
   LayoutDashboard, User, BookOpen, Search, Inbox, 
-  MessageSquare, Calendar, Bell, Star, Trophy, 
+  MessageSquare, Calendar, Bell, Star, Trophy, Wallet, 
   Settings, LogOut, Shield, Share2 
 } from 'lucide-react';
 
@@ -22,6 +22,7 @@ export default function Sidebar({ onItemClick }) {
     { name: 'Notifications', path: '/notifications', icon: Bell },
     { name: 'Reviews', path: '/reviews', icon: Star },
     { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
+    { name: 'Wallet', path: '/wallet', icon: Wallet },
     { name: 'Settings', path: '/settings', icon: Settings },
   ];
 

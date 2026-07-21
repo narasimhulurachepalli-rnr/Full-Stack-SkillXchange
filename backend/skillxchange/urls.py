@@ -6,4 +6,5 @@ urlpatterns = [
     path('api/exchanges/', include('apps.exchanges.urls')),
     path('api/chat/', include('apps.chat.urls')),
     path('api/sessions/', include('apps.sessions.urls')),
+    path('api/wallet/', include('apps.wallet.urls')),
 ]

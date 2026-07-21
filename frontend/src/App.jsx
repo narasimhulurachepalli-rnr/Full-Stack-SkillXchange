@@ -23,6 +23,7 @@ import Reviews from './pages/Reviews';
 import Leaderboard from './pages/Leaderboard';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
+import Wallet from './pages/Wallet';
 
 // Route Guard Wrapper for Private Pages
 const PrivateRoute = ({ children }) => {
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
           <Route path="/reviews" element={<PrivateRoute><Reviews /></PrivateRoute>} />
           <Route path="/leaderboard" element={<PrivateRoute><Leaderboard /></PrivateRoute>} />
+          <Route path="/wallet" element={<PrivateRoute><Wallet /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
           <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
 

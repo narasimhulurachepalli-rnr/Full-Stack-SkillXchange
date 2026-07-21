@@ -1,15 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  LayoutDashboard, Search, Calendar, MessageSquare, User 
+  LayoutDashboard, Search, Calendar, Wallet, User 
 } from 'lucide-react';
 
 export default function BottomNav() {
   const items = [
-    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Home', path: '/dashboard', icon: LayoutDashboard },
     { name: 'Explore', path: '/explore', icon: Search },
+    { name: 'Wallet', path: '/wallet', icon: Wallet },
     { name: 'Sessions', path: '/sessions', icon: Calendar },
-    { name: 'Messages', path: '/chat', icon: MessageSquare },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 

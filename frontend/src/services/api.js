@@ -128,5 +128,56 @@ export const api = {
       message
     }, { headers: getHeaders() });
     return response.data;
+  },
+
+  // Wallet & Credit Transaction endpoints
+  getWallet: async () => {
+    const response = await axios.get(`${API_BASE_URL}/wallet/`, { headers: getHeaders() });
+    return response.data;
+  },
+
+  getTransactions: async () => {
+    const response = await axios.get(`${API_BASE_URL}/wallet/transactions/`, { headers: getHeaders() });
+    return response.data;
+  },
+
+  transferCredits: async (receiverEmail, amount, reason = 'Peer Credit Transfer') => {
+    const response = await axios.post(`${API_BASE_URL}/wallet/transfer/`, {
+      receiver_email: receiverEmail,
+      amount: parseFloat(amount),
+      reason
+    }, { headers: getHeaders() });
+    return response.data;
+  },
+
+  deductCredits: async (amount, reason = 'Session Booking Fee') => {
+    const response = await axios.post(`${API_BASE_URL}/wallet/deduct/`, {
+      amount: parseFloat(amount),
+      reason
+    }, { headers: getHeaders() });
+    return response.data;
+  },
+
+  refundCredits: async (amount, reason = 'Cancelled Session Refund') => {
+    const response = await axios.post(`${API_BASE_URL}/wallet/refund/`, {
+      amount: parseFloat(amount),
+      reason
+    }, { headers: getHeaders() });
+    return response.data;
+  },
+
+  getAdminWallets: async () => {
+    const response = await axios.get(`${API_BASE_URL}/wallet/admin/`, { headers: getHeaders() });
+    return response.data;
+  },
+
+  adminWalletAction: async (userEmail, action, amount = 0, reason = 'Admin Action') => {
+    const response = await axios.post(`${API_BASE_URL}/wallet/admin/`, {
+      user_email: userEmail,
+      action,
+      amount: parseFloat(amount),
+      reason
+    }, { headers: getHeaders() });
+    return response.data;
   }
 };

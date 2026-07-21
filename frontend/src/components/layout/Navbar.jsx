@@ -28,10 +28,10 @@ export default function Navbar() {
         {isAuthenticated ? (
           <>
             {/* Skill Credit balance badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-500 rounded-xl text-xs font-extrabold shadow-sm">
+            <Link to="/wallet" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
               <span>🪙 {user?.credits ?? 1} Skill Credit{user?.credits === 1 ? '' : 's'}</span>
-            </div>
+            </Link>
 
             <Link to="/dashboard" className="px-5 py-2 text-sm font-semibold text-white bg-brand-indigo rounded-xl shadow-md hover:bg-brand-indigo/90 transition-all active:scale-95 duration-200">
               Dashboard

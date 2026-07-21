@@ -17,6 +17,9 @@ class AuthenticationTests(TestCase):
         self.test_password = 'TestPassword123!'
         self.test_name = 'Test User'
 
+        UserProfile.objects(email=self.test_email).delete()
+        User.objects.filter(username=self.test_email).delete()
+
     def test_registration_and_login_flow(self):
         # 1. Register User
         payload = {

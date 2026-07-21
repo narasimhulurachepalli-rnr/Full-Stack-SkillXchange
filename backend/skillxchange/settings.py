@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'apps.exchanges',
     'apps.chat',
     'apps.sessions',
+    'apps.wallet',
 ]
 
 MIDDLEWARE = [
