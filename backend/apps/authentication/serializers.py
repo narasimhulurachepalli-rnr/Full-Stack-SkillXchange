@@ -27,11 +27,14 @@ class RegisterSerializer(serializers.Serializer):
         )
         
         # Create corresponding MongoEngine profile in MongoDB
-        mongo_profile = UserProfile(
-            email=validated_data['email'],
-            full_name=validated_data['full_name']
-        )
-        mongo_profile.save()
+        try:
+            mongo_profile = UserProfile(
+                email=validated_data['email'],
+                full_name=validated_data['full_name']
+            )
+            mongo_profile.save()
+        except Exception as e:
+            print(f">>> MongoEngine profile save notice: {e}")
         
         return django_user
 

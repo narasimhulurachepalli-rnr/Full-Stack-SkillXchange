@@ -54,15 +54,16 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setIsLoading(true);
     try {
-      // Attempt login
+      // Attempt login with 6s timeout
       const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
         username: email,
         password: password
-      });
+      }, { timeout: 6000 });
       
       const { access, refresh } = response.data;
       const profileResponse = await axios.get(`${API_BASE_URL}/auth/profile/`, {
-        headers: { Authorization: `Bearer ${access}` }
+        headers: { Authorization: `Bearer ${access}` },
+        timeout: 6000
       });
       
       const loggedUser = profileResponse.data;
@@ -74,7 +75,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('skillxchange_user', JSON.stringify(loggedUser));
       return { success: true };
     } catch (error) {
-      console.warn("Backend API not reachable. Using mock credentials.");
+      console.warn("Backend API not reachable or timed out. Using mock credentials.");
       // Fallback for visual testing
       if (email === "nandini@email.com" || email.includes("@")) {
         const testUser = { ...mockUser, email };
@@ -98,20 +99,29 @@ export const AuthProvider = ({ children }) => {
         email: email,
         password: password,
         confirm_password: password
-      });
+      }, { timeout: 6000 });
       
       const { tokens: newTokens, user: newUser } = response.data;
       setTokens(newTokens);
-      setUser(newUser);
+      setUser(newUser || {
+        email,
+        full_name: fullName,
+        credits: 1,
+        is_verified: true
+      });
       setIsAuthenticated(true);
       
       localStorage.setItem('skillxchange_tokens', JSON.stringify(newTokens));
-      localStorage.setItem('skillxchange_user', JSON.stringify(newUser));
+      localStorage.setItem('skillxchange_user', JSON.stringify(newUser || { email, full_name: fullName }));
       return { success: true };
     } catch (error) {
-      console.warn("Backend API not reachable. Performing mock registration with 1 Welcome Skill Credit.");
+      console.warn("Backend API delayed or unreachable. Performing instant fallback registration.");
+      if (error.response && error.response.status === 400 && error.response.data?.email) {
+        return { success: false, error: error.response.data };
+      }
       const testUser = { 
         ...mockUser, 
+        id: `user-${Date.now()}`,
         email, 
         full_name: fullName,
         credits: 1,

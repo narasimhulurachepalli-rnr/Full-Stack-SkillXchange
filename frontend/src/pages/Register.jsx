@@ -53,16 +53,24 @@ export default function Register() {
     }
 
     setLoading(true);
-    const result = await register(fullName, email, password);
-    if (result.success && avatar !== DEFAULT_AVATAR) {
-      await updateProfile({ avatar });
-    }
-    setLoading(false);
+    try {
+      const result = await register(fullName, email, password);
+      if (result.success && avatar && avatar !== DEFAULT_AVATAR) {
+        await updateProfile({ avatar });
+      }
+      setLoading(false);
 
-    if (result.success) {
-      navigate('/email-verify');
-    } else {
-      setError(result.error?.email?.[0] || result.error?.detail || 'Registration failed.');
+      if (result.success) {
+        navigate('/email-verify');
+      } else {
+        const errorMsg = typeof result.error === 'string' 
+          ? result.error 
+          : (result.error?.email?.[0] || result.error?.detail || result.error?.non_field_errors?.[0] || 'Registration failed. Please try again.');
+        setError(errorMsg);
+      }
+    } catch (err) {
+      setLoading(false);
+      setError('Registration encountered a network issue. Please try again.');
     }
   };
 
