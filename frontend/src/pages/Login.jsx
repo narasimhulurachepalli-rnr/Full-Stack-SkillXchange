@@ -122,10 +122,9 @@ export default function Login() {
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-brand-indigo hover:bg-brand-indigo/90 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-indigo/20 transition-all active:scale-95 duration-200 disabled:opacity-50"
+              className="w-full py-3 bg-brand-indigo hover:bg-brand-indigo/90 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-indigo/20 transition-all active:scale-95 duration-200 cursor-pointer"
             >
-              {loading ? "Logging in..." : "Login"}
+              Login
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
