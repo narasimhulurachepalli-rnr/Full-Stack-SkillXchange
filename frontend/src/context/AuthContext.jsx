@@ -166,27 +166,34 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/login';
   };
 
-  const updateProfile = async (profileData) => {
+  const updateProfile = (profileData) => {
     try {
-      if (tokens && tokens.access && tokens.access !== "mock") {
-        const response = await axios.put(`${API_BASE_URL}/auth/profile/`, profileData, {
-          headers: { Authorization: `Bearer ${tokens.access}` },
-          timeout: 4000
-        });
-        setUser(response.data);
-        localStorage.setItem('skillxchange_user', JSON.stringify(response.data));
-      } else {
-        const updated = { ...user, ...profileData };
-        setUser(updated);
-        localStorage.setItem('skillxchange_user', JSON.stringify(updated));
-      }
-      return { success: true };
-    } catch (error) {
-      console.error("Profile update notice:", error);
       const updated = { ...user, ...profileData };
       setUser(updated);
-      localStorage.setItem('skillxchange_user', JSON.stringify(updated));
+
+      try {
+        localStorage.setItem('skillxchange_user', JSON.stringify(updated));
+        
+        // Also sync in skillxchange_all_users list
+        const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
+        const userIndex = list.findIndex(u => u.email && u.email.toLowerCase() === (updated.email || '').toLowerCase());
+        if (userIndex !== -1) {
+          list[userIndex].user = updated;
+          localStorage.setItem('skillxchange_all_users', JSON.stringify(list));
+        }
+      } catch (e) {}
+
+      // Non-blocking background API update if real JWT token is present
+      if (tokens && tokens.access && tokens.access !== "mock" && !tokens.access.startsWith("token_")) {
+        axios.put(`${API_BASE_URL}/auth/profile/`, profileData, {
+          headers: { Authorization: `Bearer ${tokens.access}` },
+          timeout: 2000
+        }).catch(() => {});
+      }
+
       return { success: true };
+    } catch (error) {
+      return { success: false, error: "Failed to update profile" };
     }
   };
 
