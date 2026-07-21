@@ -4,6 +4,22 @@
 
 ---
 
+## 📸 Screenshots Showcase
+
+### 1. Dashboard Overview
+![SkillXchange Dashboard](frontend/public/screenshots/dashboard_page_1784608744730.png)
+
+### 2. Search Students & Skills (Explore)
+![SkillXchange Explore](frontend/public/screenshots/explore_page_1784608762964.png)
+
+### 3. Skill Exchange Requests (Sent & Received)
+![SkillXchange Requests](frontend/public/screenshots/requests_page_1784608776327.png)
+
+### 4. Real-time Peer Conversations (Chat)
+![SkillXchange Chat](frontend/public/screenshots/chat_page_1784608791419.png)
+
+---
+
 ## ✨ Features
 
 - 🔐 **Authentication & Profiles**: Secure JWT authentication with customized user profiles, bio, skill tags, XP points, and Skill Credit balance tracking.
