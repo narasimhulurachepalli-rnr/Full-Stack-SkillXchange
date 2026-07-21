@@ -41,12 +41,19 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('skillxchange_user');
     
     if (savedTokens && savedUser) {
-      setTokens(JSON.parse(savedTokens));
-      setUser(JSON.parse(savedUser));
-      setIsAuthenticated(true);
+      try {
+        setTokens(JSON.parse(savedTokens));
+        setUser(JSON.parse(savedUser));
+        setIsAuthenticated(true);
+      } catch (e) {
+        setUser(null);
+        setTokens(null);
+        setIsAuthenticated(false);
+      }
     } else {
-      setUser(mockUser);
-      setIsAuthenticated(true);
+      setUser(null);
+      setTokens(null);
+      setIsAuthenticated(false);
     }
     setIsLoading(false);
   }, []);

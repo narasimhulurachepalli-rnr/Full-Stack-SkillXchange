@@ -10,13 +10,11 @@ export default function EmailVerify() {
 
   const handleGoToDashboard = async () => {
     try {
-      if (!isAuthenticated || !user) {
-        await login("nandini@email.com", "password");
-      } else {
+      if (isAuthenticated && user) {
         await updateProfile({ is_verified: true });
       }
     } catch (e) {
-      console.warn("Auth initialization fallback:", e);
+      console.warn("Auth update profile notice:", e);
     }
     navigate('/dashboard');
   };
