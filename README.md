@@ -143,17 +143,47 @@ Skill Exchange/
 
 ---
 
-## ☁️ Cloud Deployment Guidelines
+## ⚡ Continuous Integration & Deployment (CI/CD)
 
-- **Frontend Deployment (Vercel / Netlify)**:
-  - Root directory: `frontend`
-  - Build command: `npm run build`
-  - Output directory: `dist`
+SkillXchange is configured with automated CI/CD continuous integration and deployment pipelines across **GitHub Actions**, **Vercel**, and **Render**.
 
-- **Backend Deployment (Render / Railway / Heroku)**:
-  - Root directory: `backend`
-  - Start command: `gunicorn skillxchange.wsgi:application`
-  - Environment variables: Set `MONGODB_URI` to your MongoDB Atlas connection string.
+```
+[ Local Code Change ]
+         │
+         ▼
+[ git push origin main ]
+         │
+         ├───► GitHub Actions (Runs tests & builds frontend/backend)
+         │
+         ├───► Vercel (Auto-deploys Frontend to production URL)
+         │
+         └───► Render (Auto-deploys Django Backend Service with zero downtime)
+```
+
+### **Automated Deployment Workflow**
+1. **Push Changes**: Simply commit and push code to the `main` branch of your GitHub repository:
+   ```bash
+   git add .
+   git commit -m "Your feature updates"
+   git push origin main
+   ```
+2. **Vercel Automatic Deployment**:
+   - Vercel automatically detects the push to `main` branch.
+   - Executes `npm run build` in the `frontend` root directory.
+   - Promotes the new build to production URL `https://frontend-silk-chi-97.vercel.app` with instant global edge caching.
+3. **Render Automatic Deployment**:
+   - Render automatically pulls the latest commit.
+   - Executes `pip install -r requirements.txt && python manage.py migrate`.
+   - Performs zero-downtime rolling restart using Gunicorn WSGI.
+4. **GitHub Actions Verification**:
+   - Runs automated pipeline defined in [.github/workflows/ci.yml](file:///.github/workflows/ci.yml) to run test suites and verify build integrity.
+
+### **Zero-Downtime & Rollback Guarantee**
+- If a build fails on Vercel or Render due to a syntax or test error, the deployment is automatically rejected and the previous stable version remains running without downtime.
+
+### **Triggering Manual Redeployments**
+- **Vercel**: Visit your [Vercel Project Dashboard](https://vercel.com/narasimhulurachepalli-rnrs-projects/frontend) $\rightarrow$ Deployments $\rightarrow$ Click `Redeploy`.
+- **Render**: Visit your [Render Dashboard](https://dashboard.render.com) $\rightarrow$ Select `skillxchange-backend` $\rightarrow$ Click `Manual Deploy` $\rightarrow$ `Deploy latest commit`.
 
 ---
 
