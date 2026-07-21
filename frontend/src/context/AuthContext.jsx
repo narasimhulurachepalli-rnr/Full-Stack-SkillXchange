@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (fullName, email, password) => {
+  const register = async (fullName, email, password, avatar = null) => {
     setIsLoading(true);
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
@@ -106,20 +106,24 @@ export const AuthProvider = ({ children }) => {
         email: email,
         password: password,
         confirm_password: password
-      }, { timeout: 6000 });
+      }, { timeout: 4000 });
       
       const { tokens: newTokens, user: newUser } = response.data;
-      setTokens(newTokens);
-      setUser(newUser || {
+      const userObj = {
+        ...(newUser || {}),
         email,
         full_name: fullName,
         credits: 1,
+        avatar: avatar || (newUser && newUser.avatar) || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
         is_verified: true
-      });
+      };
+
+      setTokens(newTokens || { access: "mock", refresh: "mock" });
+      setUser(userObj);
       setIsAuthenticated(true);
       
-      localStorage.setItem('skillxchange_tokens', JSON.stringify(newTokens));
-      localStorage.setItem('skillxchange_user', JSON.stringify(newUser || { email, full_name: fullName }));
+      localStorage.setItem('skillxchange_tokens', JSON.stringify(newTokens || { access: "mock", refresh: "mock" }));
+      localStorage.setItem('skillxchange_user', JSON.stringify(userObj));
       return { success: true };
     } catch (error) {
       console.warn("Backend API delayed or unreachable. Performing instant fallback registration.");
@@ -132,6 +136,7 @@ export const AuthProvider = ({ children }) => {
         email, 
         full_name: fullName,
         credits: 1,
+        avatar: avatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
         credit_history: [
           {
             id: `tx-${Date.now()}`,
@@ -164,7 +169,8 @@ export const AuthProvider = ({ children }) => {
     try {
       if (tokens && tokens.access && tokens.access !== "mock") {
         const response = await axios.put(`${API_BASE_URL}/auth/profile/`, profileData, {
-          headers: { Authorization: `Bearer ${tokens.access}` }
+          headers: { Authorization: `Bearer ${tokens.access}` },
+          timeout: 4000
         });
         setUser(response.data);
         localStorage.setItem('skillxchange_user', JSON.stringify(response.data));
@@ -175,7 +181,7 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: true };
     } catch (error) {
-      console.error(error);
+      console.error("Profile update notice:", error);
       const updated = { ...user, ...profileData };
       setUser(updated);
       localStorage.setItem('skillxchange_user', JSON.stringify(updated));

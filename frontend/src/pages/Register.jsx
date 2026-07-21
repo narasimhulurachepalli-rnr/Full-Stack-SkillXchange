@@ -54,10 +54,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const result = await register(fullName, email, password);
-      if (result.success && avatar && avatar !== DEFAULT_AVATAR) {
-        await updateProfile({ avatar });
-      }
+      const result = await register(fullName, email, password, avatar);
       setLoading(false);
 
       if (result.success) {
