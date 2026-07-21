@@ -1,0 +1,10 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Environment & local DB files
+db.sqlite3
+dist/
+.DS_Store
+*.log
