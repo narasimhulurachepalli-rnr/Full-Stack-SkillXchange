@@ -42,10 +42,22 @@ export const AuthProvider = ({ children }) => {
     
     if (savedTokens && savedUser) {
       try {
-        setTokens(JSON.parse(savedTokens));
-        setUser(JSON.parse(savedUser));
-        setIsAuthenticated(true);
+        const parsedUser = JSON.parse(savedUser);
+        // Clear old mock user data from prior builds
+        if (!parsedUser || parsedUser.id === "mock-nandini-id" || parsedUser.email === "nandini@email.com") {
+          localStorage.removeItem('skillxchange_tokens');
+          localStorage.removeItem('skillxchange_user');
+          setUser(null);
+          setTokens(null);
+          setIsAuthenticated(false);
+        } else {
+          setTokens(JSON.parse(savedTokens));
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+        }
       } catch (e) {
+        localStorage.removeItem('skillxchange_tokens');
+        localStorage.removeItem('skillxchange_user');
         setUser(null);
         setTokens(null);
         setIsAuthenticated(false);
@@ -151,6 +163,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     localStorage.removeItem('skillxchange_tokens');
     localStorage.removeItem('skillxchange_user');
+    window.location.href = '/login';
   };
 
   const updateProfile = async (profileData) => {
