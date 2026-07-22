@@ -4,7 +4,7 @@ from apps.authentication.models import UserProfile
 
 class RegisterSerializer(serializers.Serializer):
     full_name = serializers.CharField(max_length=150)
-    email = serializers.EmailField()
+    email = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
     avatar = serializers.CharField(required=False, allow_blank=True)

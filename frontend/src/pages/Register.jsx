@@ -168,11 +168,11 @@ export default function Register() {
                   <Mail className="w-4 h-4" />
                 </span>
                 <input
-                  type="email"
+                  type="text"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nandini@email.com"
+                  placeholder="nandini@email.com or username"
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-brand-indigo focus:ring-2 focus:ring-brand-indigo/10 transition-all placeholder:text-slate-700"
                 />
               </div>
