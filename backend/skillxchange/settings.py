@@ -52,6 +52,7 @@ try:
     ATLAS_URI = "mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority"
     MONGODB_URI = os.environ.get('MONGODB_URI', ATLAS_URI)
     mongoengine.connect(
+        db='skillxchange',
         host=MONGODB_URI,
         connect=False,
         serverSelectionTimeoutMS=5000,

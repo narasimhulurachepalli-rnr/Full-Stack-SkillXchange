@@ -24,7 +24,7 @@ class UserProfile(mongoengine.Document):
     avatar = mongoengine.StringField(default="")
     role = mongoengine.StringField(default="User")  # "User" or "Admin"
     
-    is_verified = mongoengine.BooleanField(default=False)
+    is_verified = mongoengine.BooleanField(default=True)
     created_at = mongoengine.DateTimeField(default=datetime.utcnow)
 
     def to_json_dict(self):
