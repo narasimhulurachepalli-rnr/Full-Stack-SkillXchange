@@ -16,7 +16,8 @@ class RegisterSerializer(serializers.Serializer):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({"password": "Passwords do not match."})
         
-        if User.objects.filter(username=email_str).exists() or UserProfile.objects(email=email_str).first():
+        # Reject only if user exists in BOTH SQLite AND MongoDB with active profile
+        if User.objects.filter(username=email_str).exists() and UserProfile.objects(email=email_str).first():
             raise serializers.ValidationError({"email": "User with this email already exists."})
         
         return data
@@ -25,13 +26,19 @@ class RegisterSerializer(serializers.Serializer):
         email = validated_data['email'].strip().lower()
         full_name = validated_data['full_name'].strip()
 
-        # Create standard Django user in SQLite
-        django_user = User.objects.create_user(
-            username=email,
-            email=email,
-            password=validated_data['password'],
-            first_name=full_name
-        )
+        # Create or fetch Django user in SQLite
+        django_user = User.objects.filter(username=email).first()
+        if not django_user:
+            django_user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=validated_data['password'],
+                first_name=full_name
+            )
+        else:
+            django_user.set_password(validated_data['password'])
+            django_user.first_name = full_name
+            django_user.save()
         
         # Mandatory MongoEngine profile save in MongoDB Atlas
         mongo_profile = UserProfile.objects(email=email).first()

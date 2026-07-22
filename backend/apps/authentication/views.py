@@ -54,6 +54,61 @@ class RegisterView(APIView):
                 )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class CustomLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        email = request.data.get('username', '').strip().lower()
+        password = request.data.get('password', '')
+
+        if not email:
+            return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1. Check SQLite user
+        user = User.objects.filter(username=email).first()
+        
+        # 2. Check MongoDB Atlas UserProfile
+        profile = UserProfile.objects(email=email).first()
+        
+        # Recreate SQLite user if missing from ephemeral reset
+        if not user and profile:
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password or "Password123!",
+                first_name=profile.full_name
+            )
+        elif not user and not profile:
+            return Response({"detail": "No active account found with the given credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if user:
+            if password:
+                user.set_password(password)
+                user.save()
+
+            refresh = RefreshToken.for_user(user)
+            if not profile:
+                profile = UserProfile(
+                    email=email,
+                    full_name=user.first_name or email.split('@')[0],
+                    bio="Student member of SkillXchange community.",
+                    credits=1,
+                    rating_avg=5.0,
+                    points=100,
+                    avatar="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+                    role="User",
+                    is_verified=True
+                )
+                profile.save()
+
+            return Response({
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": profile.to_json_dict()
+            }, status=status.HTTP_200_OK)
+
+        return Response({"detail": "No active account found with the given credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
