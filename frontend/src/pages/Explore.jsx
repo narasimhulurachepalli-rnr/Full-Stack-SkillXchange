@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { MOCK_USERS, MOCK_CATEGORIES } from '../utils/mockData';
+import { api } from '../services/api';
 import { Search, Star, BookOpen, MessageSquare, ArrowRight, SlidersHorizontal } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,30 +10,66 @@ export default function Explore() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [level, setLevel] = useState('');
+  const [usersList, setUsersList] = useState(MOCK_USERS);
   const [filteredUsers, setFilteredUsers] = useState(MOCK_USERS);
 
   useEffect(() => {
-    // Perform local filtering
-    let result = MOCK_USERS;
+    let isMounted = true;
+    const fetchUsers = async () => {
+      let combinedUsers = [...MOCK_USERS];
+      
+      // 1. Check local storage registered users
+      try {
+        const storedList = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
+        storedList.forEach(u => {
+          if (u && u.user && u.user.email && !combinedUsers.some(existing => existing.email?.toLowerCase() === u.user.email.toLowerCase())) {
+            combinedUsers.push(u.user);
+          }
+        });
+      } catch (e) {}
+
+      // 2. Fetch live users from backend API
+      try {
+        const apiUsers = await api.searchUsers(search, category, '', '');
+        if (apiUsers && Array.isArray(apiUsers) && apiUsers.length > 0) {
+          apiUsers.forEach(au => {
+            if (au && au.email && !combinedUsers.some(existing => existing.email?.toLowerCase() === au.email.toLowerCase())) {
+              combinedUsers.push(au);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("API users fetch notice, using cached list");
+      }
+
+      if (isMounted) {
+        setUsersList(combinedUsers);
+      }
+    };
+
+    fetchUsers();
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    // Perform local filtering on user list
+    let result = usersList;
     
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter(u => 
-        u.full_name.toLowerCase().includes(q) ||
-        u.teach_skills.some(s => s.toLowerCase().includes(q)) ||
-        u.learn_skills.some(s => s.toLowerCase().includes(q))
+        (u.full_name && u.full_name.toLowerCase().includes(q)) ||
+        (u.teach_skills && u.teach_skills.some(s => s.toLowerCase().includes(q))) ||
+        (u.learn_skills && u.learn_skills.some(s => s.toLowerCase().includes(q)))
       );
     }
     
-    // In demo we don't have separate categorization for tags in user profile,
-    // so we can mock matches by querying skill tags containing or matching terms.
     if (category) {
-      // Mock category filter mapping
-      result = result.filter(u => u.teach_skills.length > 0);
+      result = result.filter(u => u.teach_skills && u.teach_skills.length > 0);
     }
     
     setFilteredUsers(result);
-  }, [search, category, level]);
+  }, [search, category, level, usersList]);
 
   return (
     <DashboardLayout>
