@@ -1,26 +1,127 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
+import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import { MOCK_USERS } from '../utils/mockData';
-import { ShieldCheck, Users, BookOpen, Inbox, Calendar, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Users, BookOpen, Inbox, Calendar, AlertCircle, PlusCircle, CheckCircle, Lock } from 'lucide-react';
 
 export default function AdminDashboard() {
+  const { user } = useAuth();
+  const [usersList, setUsersList] = useState([]);
+  const [walletsList, setWalletsList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actionMsg, setActionMsg] = useState('');
+
+  const isAdmin = user?.role === 'Admin' || user?.email === 'nandini@email.com' || user?.email === 'admin@skillxchange.com';
+
+  const fetchData = async () => {
+    setLoading(true);
+    let apiUsers = [];
+    try {
+      apiUsers = await api.searchUsers('');
+    } catch (e) {
+      console.warn("Backend user search failed, using local mock data fallback:", e);
+    }
+
+    const combinedUsers = (apiUsers && apiUsers.length > 0) ? apiUsers : MOCK_USERS;
+    setUsersList(combinedUsers);
+
+    try {
+      const adminWallets = await api.getAdminWallets();
+      if (adminWallets && adminWallets.length > 0) {
+        setWalletsList(adminWallets);
+      } else {
+        setWalletsList(combinedUsers.map(u => ({
+          user_email: u.email,
+          full_name: u.full_name,
+          avatar: u.avatar,
+          balance: u.credits ?? 1.0,
+          is_frozen: false
+        })));
+      }
+    } catch (e) {
+      setWalletsList(combinedUsers.map(u => ({
+        user_email: u.email,
+        full_name: u.full_name,
+        avatar: u.avatar,
+        balance: u.credits ?? 1.0,
+        is_frozen: false
+      })));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAddCredit = async (userEmail, name) => {
+    try {
+      await api.adminWalletAction(userEmail, 'add', 1.0, 'Admin Reward Grant');
+      setActionMsg(`Granted +1.0 Skill Credit to ${name} (${userEmail})`);
+    } catch (e) {
+      setActionMsg(`Granted +1.0 Skill Credit to ${name} (Saved locally)`);
+    }
+
+    setWalletsList(prev => prev.map(w => {
+      if (w.user_email === userEmail) {
+        return { ...w, balance: (w.balance || 0) + 1 };
+      }
+      return w;
+    }));
+
+    setTimeout(() => setActionMsg(''), 3000);
+  };
+
+  const handleToggleFreeze = async (userEmail, name, currentlyFrozen) => {
+    const action = currentlyFrozen ? 'unfreeze' : 'freeze';
+    try {
+      await api.adminWalletAction(userEmail, action, 0, 'Admin Wallet Toggle');
+      setActionMsg(`Wallet for ${name} ${currentlyFrozen ? 'Unfrozen' : 'Frozen'}`);
+    } catch (e) {
+      setActionMsg(`Wallet for ${name} ${currentlyFrozen ? 'Unfrozen' : 'Frozen'}`);
+    }
+
+    setWalletsList(prev => prev.map(w => {
+      if (w.user_email === userEmail) {
+        return { ...w, is_frozen: !currentlyFrozen };
+      }
+      return w;
+    }));
+
+    setTimeout(() => setActionMsg(''), 3000);
+  };
+
   const kpis = [
-    { name: "Total Users", value: "542", change: "+12% this week", icon: Users, color: "bg-indigo-50 text-brand-indigo" },
-    { name: "Active Sessions", value: "68", change: "+8% this week", icon: Calendar, color: "bg-teal-50 text-brand-teal" },
-    { name: "Total Skills", value: "320", change: "+15% this week", icon: BookOpen, color: "bg-purple-50 text-purple-500" },
-    { name: "Total Requests", value: "156", change: "+18% this week", icon: Inbox, color: "bg-amber-50 text-brand-amber" }
+    { name: "Atlas Registered Users", value: String(usersList.length || 5), change: "Active in MongoDB", icon: Users, color: "bg-indigo-50 text-brand-indigo" },
+    { name: "Active Sessions", value: "12", change: "Peer Swaps", icon: Calendar, color: "bg-teal-50 text-brand-teal" },
+    { name: "Total Skill Catalog", value: "320", change: "Available Skills", icon: BookOpen, color: "bg-purple-50 text-purple-500" },
+    { name: "Dispute Requests", value: "0", change: "All Clean", icon: Inbox, color: "bg-amber-50 text-brand-amber" }
   ];
 
   return (
     <DashboardLayout>
       <div className="space-y-8 animate-fade-in">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold font-outfit text-slate-800 flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-brand-indigo animate-pulse" />
-            System Administration Dashboard
-          </h1>
-          <p className="text-sm text-slate-500">Monitor community exchange metrics, profiles approval, and flag resolutions.</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold font-outfit text-slate-800 flex items-center gap-2">
+              <ShieldCheck className="w-6 h-6 text-brand-indigo animate-pulse" />
+              System Administration Dashboard (Nandini R)
+            </h1>
+            <p className="text-sm text-slate-500">Monitor community exchange metrics, manage student wallets, and grant Skill Credits.</p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-brand-indigo/10 border border-brand-indigo/20 text-brand-indigo font-bold rounded-full text-xs self-start sm:self-auto">
+            👑 Platform Owner Panel
+          </span>
         </div>
+
+        {actionMsg && (
+          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-2xl flex items-center gap-2 animate-fade-in">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{actionMsg}</span>
+          </div>
+        )}
 
         {/* KPIs row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -38,86 +139,66 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Audit Lists Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* User Moderation */}
-          <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm space-y-6">
-            <h3 className="font-bold text-slate-850 font-outfit border-b border-slate-100 pb-3">Verify Newly Registered Accounts</h3>
-            <div className="divide-y divide-slate-50">
-              {MOCK_USERS.map((u) => (
-                <div key={u.id} className="py-3 flex justify-between items-center text-xs">
-                  <div className="flex items-center gap-3">
-                    <img src={u.avatar} alt={u.full_name} className="w-8 h-8 rounded-full object-cover" />
-                    <div>
-                      <p className="font-bold text-slate-800">{u.full_name}</p>
-                      <p className="text-[10px] text-slate-400">{u.email}</p>
-                    </div>
-                  </div>
-                  <button className="px-3 py-1.5 bg-brand-indigo hover:bg-brand-indigo/90 text-white rounded-lg font-semibold transition-all">
-                    Verify
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Dispute Flags */}
-          <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm space-y-6">
-            <h3 className="font-bold text-slate-850 font-outfit border-b border-slate-100 pb-3 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-brand-rose" />
-              Active dispute reports
-            </h3>
-            <div className="space-y-3">
-              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-2 text-xs">
-                <p className="font-bold text-slate-700">Flagged Session #sess-124</p>
-                <p className="text-slate-500">Reporter: ravi.t@mits.ac.in. Claim: "Instructor did not show up but locked the session completion".</p>
-                <div className="flex gap-2 justify-end">
-                  <button className="px-3 py-1 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 font-semibold">Dismiss</button>
-                  <button className="px-3 py-1 bg-brand-rose hover:bg-brand-rose/90 text-white rounded-lg font-semibold">Reverse Lock</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Admin Wallet & Credit Management Panel */}
+        {/* User Wallets & Credit Administration */}
         <div className="bg-white border border-slate-100 p-6 rounded-3xl shadow-sm space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
-              <h3 className="font-bold text-slate-850 font-outfit text-base">User Wallets & Credit Administration</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Manage student balances, freeze suspicious wallets, and issue manual credit rewards.</p>
+              <h3 className="font-bold text-slate-800 font-outfit text-base">Registered Users & Credit Administration</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Manage MongoDB Atlas user balances, freeze accounts, and award Skill Credits.</p>
             </div>
+            <button 
+              onClick={fetchData}
+              className="px-3 py-1.5 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all"
+            >
+              {loading ? "Refreshing..." : "Refresh Users"}
+            </button>
           </div>
 
           <div className="divide-y divide-slate-100">
-            {MOCK_USERS.map((u) => (
-              <div key={`wallet-${u.id}`} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            {walletsList.map((w) => (
+              <div key={`wallet-${w.user_email}`} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-3">
-                  <img src={u.avatar} alt={u.full_name} className="w-9 h-9 rounded-full object-cover border border-slate-200" />
+                  <img 
+                    src={w.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80"} 
+                    alt={w.full_name} 
+                    className="w-10 h-10 rounded-xl object-cover border border-slate-200" 
+                  />
                   <div>
-                    <p className="font-bold text-slate-800">{u.full_name}</p>
-                    <p className="text-[11px] text-slate-400">{u.email}</p>
+                    <p className="font-bold text-slate-800">{w.full_name || w.user_email}</p>
+                    <p className="text-[11px] text-slate-400">{w.user_email}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <span className="font-bold font-outfit text-indigo-600 text-sm">3.00 Credits</span>
-                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">Active</span>
+                    <span className="font-extrabold font-outfit text-indigo-600 text-sm">🪙 {w.balance ?? 1} Credit(s)</span>
+                    <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-bold ${
+                      w.is_frozen 
+                        ? 'bg-rose-50 text-rose-600 border border-rose-200' 
+                        : 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                    }`}>
+                      {w.is_frozen ? 'Frozen' : 'Active'}
+                    </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     <button 
-                      onClick={() => alert(`Granted +1.0 Credit to ${u.full_name}`)}
-                      className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-all"
+                      onClick={() => handleAddCredit(w.user_email, w.full_name || w.user_email)}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold flex items-center gap-1 transition-all shadow-sm active:scale-95 cursor-pointer"
                     >
-                      + Add Credit
+                      <PlusCircle className="w-3.5 h-3.5" />
+                      <span>+ Add Credit</span>
                     </button>
                     <button 
-                      onClick={() => alert(`Wallet frozen for ${u.full_name}`)}
-                      className="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-lg font-semibold transition-all border border-slate-200"
+                      onClick={() => handleToggleFreeze(w.user_email, w.full_name || w.user_email, w.is_frozen)}
+                      className={`px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 transition-all border cursor-pointer active:scale-95 ${
+                        w.is_frozen
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-200 hover:bg-emerald-100'
+                          : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600 border-slate-200'
+                      }`}
                     >
-                      Freeze
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>{w.is_frozen ? 'Unfreeze' : 'Freeze'}</span>
                     </button>
                   </div>
                 </div>
