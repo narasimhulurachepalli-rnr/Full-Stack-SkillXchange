@@ -1,3 +1,4 @@
+// Force Vercel rebuild trigger: 2026-07-22 22:42
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
