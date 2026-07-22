@@ -4,7 +4,7 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://skillxchan
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 45000,
+  timeout: 75000,
 });
 
 apiClient.interceptors.response.use(
@@ -13,7 +13,7 @@ apiClient.interceptors.response.use(
     const { config } = error;
     if (config && (!config._retryCount || config._retryCount < 2) && (!error.response || error.response.status >= 500)) {
       config._retryCount = (config._retryCount || 0) + 1;
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       return apiClient(config);
     }
     return Promise.reject(error);
@@ -34,7 +34,7 @@ const getHeaders = () => {
 export const api = {
   pingServer: async () => {
     try {
-      await axios.get(`${API_BASE_URL}/auth/ping/`, { timeout: 15000 });
+      await axios.get(`${API_BASE_URL}/auth/ping/`, { timeout: 75000 });
     } catch (e) {
       console.warn("Warm-up ping sent to Render backend");
     }
