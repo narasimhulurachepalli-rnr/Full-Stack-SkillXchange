@@ -1,6 +1,8 @@
 import os
+import sys
 from pathlib import Path
 from datetime import timedelta
+import traceback
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -11,12 +13,9 @@ except ImportError:
     pass
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-skill-x-change-platform-prod-quality-key-2026')
-
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
-
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
-# Application definition
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.auth',
@@ -37,7 +36,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'skillxchange.urls'
-
 WSGI_APPLICATION = 'skillxchange.wsgi.application'
 
 DATABASES = {
@@ -47,21 +45,36 @@ DATABASES = {
     }
 }
 
+# --- Production MongoEngine / MongoDB Atlas Configuration ---
+ATLAS_URI = "mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority"
+MONGODB_URI = os.environ.get('MONGODB_URI', ATLAS_URI)
+
 try:
     import mongoengine
-    ATLAS_URI = "mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority"
-    MONGODB_URI = os.environ.get('MONGODB_URI', ATLAS_URI)
+    
+    # Initialize connection pool immediately (connect=False removed)
     mongoengine.connect(
         db='skillxchange',
         host=MONGODB_URI,
-        connect=False,
         serverSelectionTimeoutMS=5000,
         connectTimeoutMS=10000,
         socketTimeoutMS=10000
     )
-    print(">>> MongoDB Atlas connection successfully configured.")
+    
+    # Startup Health Check & Validation
+    db = mongoengine.connection.get_db()
+    client = db.client
+    server_info = client.server_info()
+    ping_res = client.admin.command('ping')
+    
+    print(">>> MongoDB Connected Successfully")
+    print(f">>> Target Database: {db.name}")
+    print(f">>> MongoDB Server Version: {server_info.get('version', 'unknown')}")
 except Exception as e:
-    print(f">>> MongoEngine connection notice: {e}")
+    print(f"CRITICAL ERROR: Failed to connect to MongoDB Atlas at {MONGODB_URI}")
+    print(f"Traceback:\n{traceback.format_exc()}")
+    # Fail loudly on invalid connection
+    raise RuntimeError(f"MongoDB Atlas Connection Error: {e}") from e
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -122,4 +135,3 @@ USE_I18N = True
 USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
