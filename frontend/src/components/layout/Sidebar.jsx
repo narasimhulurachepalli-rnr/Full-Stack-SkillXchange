@@ -65,7 +65,11 @@ export default function Sidebar({ onItemClick }) {
         ))}
 
         {/* Exclusive Owner Admin Tab */}
-        {(user?.email?.toLowerCase() === 'rachepallinandini@gmail.com' || user?.email?.toLowerCase() === 'nandini@email.com' || user?.email?.toLowerCase() === 'admin@skillxchange.com' || user?.role === 'Admin') && (
+        {(user?.role === 'Admin' || 
+          user?.email?.toLowerCase().includes('rachepallinandini') || 
+          user?.email?.toLowerCase().includes('nandini') || 
+          user?.full_name?.toLowerCase().includes('rachepallinandini') || 
+          user?.email?.toLowerCase() === 'admin@skillxchange.com') && (
           <NavLink
             to="/admin"
             onClick={onItemClick}

@@ -18,10 +18,11 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 
-  const isOwnerAdmin = user?.email?.toLowerCase() === 'rachepallinandini@gmail.com' || 
-                       user?.email?.toLowerCase() === 'nandini@email.com' || 
-                       user?.email?.toLowerCase() === 'admin@skillxchange.com' || 
-                       user?.role === 'Admin';
+  const isOwnerAdmin = user?.role === 'Admin' ||
+                       user?.email?.toLowerCase().includes('rachepallinandini') || 
+                       user?.email?.toLowerCase().includes('nandini') || 
+                       user?.full_name?.toLowerCase().includes('rachepallinandini') || 
+                       user?.email?.toLowerCase() === 'admin@skillxchange.com';
 
   if (!isOwnerAdmin) {
     return (
