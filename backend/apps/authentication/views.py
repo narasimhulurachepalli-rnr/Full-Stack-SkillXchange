@@ -118,24 +118,37 @@ class RegisterView(APIView):
             print(f">>> MongoDB Collection: {collection_name}")
             print(f">>> Saving User to MongoEngine UserProfile: {email}")
 
-            profile = UserProfile.objects(email=email).first()
-            if not profile:
-                profile = UserProfile(
-                    email=email,
-                    full_name=full_name,
-                    bio="New student member of SkillXchange community.",
-                    credits=1,
-                    rating_avg=5.0,
-                    points=100,
-                    avatar=avatar or "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-                    role="User",
-                    is_verified=True
-                )
-            else:
-                profile.full_name = full_name
-                if avatar:
-                    profile.avatar = avatar
-                profile.is_verified = True
+            existing_profile = UserProfile.objects(email=email).first()
+            if existing_profile:
+                print(f">>> Registration Notice: Email {email} already registered in MongoDB Atlas.")
+                user = User.objects.filter(username=email).first()
+                if user:
+                    user.set_password(password)
+                    user.save()
+                    refresh = RefreshToken.for_user(user)
+                    return Response({
+                        "message": "Account already exists. Credentials updated and logged in successfully.",
+                        "tokens": {
+                            "refresh": str(refresh),
+                            "access": str(refresh.access_token),
+                        },
+                        "user": existing_profile.to_json_dict(),
+                        "atlas_document_id": str(existing_profile.id),
+                        "total_atlas_documents": UserProfile.objects.count()
+                    }, status=status.HTTP_200_OK)
+
+            # Create NEW MongoEngine UserProfile document in MongoDB Atlas
+            profile = UserProfile(
+                email=email,
+                full_name=full_name,
+                bio="New student member of SkillXchange community.",
+                credits=1,
+                rating_avg=5.0,
+                points=100,
+                avatar=avatar or "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+                role="User",
+                is_verified=True
+            )
 
             # Save explicitly and verify ID generation
             profile.save()
