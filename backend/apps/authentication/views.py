@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.renderers import JSONRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.authentication.models import UserProfile
 from apps.authentication.serializers import RegisterSerializer, UserProfileSerializer
@@ -11,6 +12,7 @@ from django.contrib.auth.models import User
 
 class PingView(APIView):
     permission_classes = [AllowAny]
+    renderer_classes = [JSONRenderer]
     
     def get(self, request):
         try:
@@ -35,6 +37,7 @@ class MongoDBDebugView(APIView):
     database stats, collection count, and last inserted document.
     """
     permission_classes = [AllowAny]
+    renderer_classes = [JSONRenderer]
 
     def get(self, request):
         try:
