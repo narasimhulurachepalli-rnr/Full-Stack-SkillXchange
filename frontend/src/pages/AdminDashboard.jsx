@@ -12,7 +12,23 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState('');
 
-  const isAdmin = user?.role === 'Admin' || user?.email === 'nandini@email.com' || user?.email === 'admin@skillxchange.com';
+  const isOwnerAdmin = user?.email?.toLowerCase() === 'nandini@email.com' || user?.email?.toLowerCase() === 'admin@skillxchange.com';
+
+  if (!isOwnerAdmin) {
+    return (
+      <DashboardLayout>
+        <div className="bg-white border border-slate-100 rounded-3xl p-12 text-center space-y-4 max-w-xl mx-auto my-12 shadow-sm animate-fade-in">
+          <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-3xl mx-auto flex items-center justify-center font-bold text-2xl">
+            🔒
+          </div>
+          <h2 className="text-xl font-bold font-outfit text-slate-800">Access Restricted</h2>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            This System Administration Panel is strictly reserved for the Platform Owner (Nandini R). Regular student accounts do not have permission to view or manage system wallets.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const fetchData = async () => {
     setLoading(true);

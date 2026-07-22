@@ -64,8 +64,8 @@ export default function Sidebar({ onItemClick }) {
           </NavLink>
         ))}
 
-        {/* Conditional Admin Tab */}
-        {(user?.role === 'Admin' || user?.email === 'nandini@email.com' || user?.email === 'admin@skillxchange.com') && (
+        {/* Exclusive Owner Admin Tab */}
+        {(user?.email?.toLowerCase() === 'nandini@email.com' || user?.email?.toLowerCase() === 'admin@skillxchange.com') && (
           <NavLink
             to="/admin"
             onClick={onItemClick}
