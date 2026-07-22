@@ -107,7 +107,7 @@ export default function DashboardLayout({ children }) {
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-600 hover:text-white transition-all duration-200 active:scale-95 cursor-pointer ml-1"
               >
                 <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Logout</span>
+                <span className="text-xs">Logout</span>
               </button>
             </div>
           )}
