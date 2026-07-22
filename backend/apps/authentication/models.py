@@ -4,7 +4,7 @@ from datetime import datetime
 class UserProfile(mongoengine.Document):
     meta = {
         'collection': 'user_profiles',
-        'indexes': ['email']
+        'indexes': ['email', 'created_at']
     }
     
     email = mongoengine.StringField(required=True, unique=True)

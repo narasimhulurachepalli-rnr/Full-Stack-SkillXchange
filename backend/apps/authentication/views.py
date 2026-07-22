@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from apps.authentication.models import UserProfile
 from apps.authentication.serializers import RegisterSerializer, UserProfileSerializer
 from apps.wallet.views import get_or_create_wallet
@@ -36,6 +37,7 @@ class MongoDBDebugView(APIView):
     """
     Diagnostics endpoint to inspect MongoDB Atlas connection,
     database stats, collection count, and last inserted document.
+    Endpoint: /api/debug/mongodb/
     """
     permission_classes = [AllowAny]
     renderer_classes = [JSONRenderer]
@@ -54,20 +56,22 @@ class MongoDBDebugView(APIView):
             last_inserted = last_user.to_json_dict() if last_user else None
 
             return Response({
-                "mongodb_status": "connected",
+                "connection_status": "connected",
                 "database": db.name,
                 "collection": collection_name,
-                "total_user_profiles": total_users,
                 "server_version": server_info.get('version', 'unknown'),
-                "ping_ok": ping_res.get('ok', 1.0) == 1.0,
-                "last_inserted_user": last_inserted
+                "total_documents": total_users,
+                "last_document": last_inserted,
+                "mongodb_uri_database": db.name,
+                "ping_result": ping_res.get('ok', 1.0) == 1.0
             }, status=status.HTTP_200_OK)
         except Exception as e:
-            print(f">>> MongoDB Diagnostics Exception: {e}\n{traceback.format_exc()}")
+            tb = traceback.format_exc()
+            print(f">>> MongoDB Diagnostics Exception: {e}\n{tb}")
             return Response({
-                "mongodb_status": "error",
+                "connection_status": "error",
                 "error_detail": str(e),
-                "traceback": traceback.format_exc()
+                "traceback": tb
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class RegisterView(APIView):
@@ -79,11 +83,17 @@ class RegisterView(APIView):
         password = request.data.get('password', '')
         avatar = request.data.get('avatar', '')
 
+        print(">>> ===========================================")
+        print(">>> Received Request: User Registration")
+        print(f">>> Email: {email}")
+
         if not email or not full_name or not password:
+            print(">>> Validation Error: Missing required fields")
+            print(">>> ===========================================")
             return Response({"detail": "Full name, email, and password are required."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # 1. Sync Django SQLite User model
+            # 1. Sync Django SQLite User model for DRF JWT authentication
             user = User.objects.filter(username=email).first()
             if not user:
                 user = User.objects.create_user(
@@ -99,7 +109,15 @@ class RegisterView(APIView):
 
             refresh = RefreshToken.for_user(user)
 
-            # 2. Save MongoEngine UserProfile in MongoDB Atlas
+            # 2. Connect & Save MongoEngine UserProfile in MongoDB Atlas
+            print(">>> Connecting MongoDB...")
+            db = mongoengine.connection.get_db()
+            collection_name = UserProfile._get_collection().name
+            
+            print(f">>> MongoDB Database: {db.name}")
+            print(f">>> MongoDB Collection: {collection_name}")
+            print(f">>> Saving User to MongoEngine UserProfile: {email}")
+
             profile = UserProfile.objects(email=email).first()
             if not profile:
                 profile = UserProfile(
@@ -130,8 +148,10 @@ class RegisterView(APIView):
                 print(f">>> Wallet auto-creation warning: {w_err}")
 
             total_count = UserProfile.objects.count()
-            print(f">>> MongoDB Atlas Save Success! Profile ID: {profile.id}")
-            print(f">>> Total UserProfile Document Count in Atlas: {total_count}")
+            print(f">>> Document ID: {profile.id}")
+            print(f">>> Document Count: {total_count}")
+            print(">>> Registration Status: Success")
+            print(">>> ===========================================")
 
             return Response({
                 "message": "User registered successfully.",
@@ -146,7 +166,10 @@ class RegisterView(APIView):
 
         except Exception as e:
             tb = traceback.format_exc()
-            print(f"CRITICAL: Registration failed to store document in MongoDB Atlas: {e}\n{tb}")
+            print(">>> ===========================================")
+            print(f"CRITICAL: Registration failed to store document in MongoDB Atlas: {e}")
+            print(f"Complete Exception Traceback:\n{tb}")
+            print(">>> ===========================================")
             return Response(
                 {
                     "detail": f"Registration failed to store profile in MongoDB Atlas: {str(e)}",

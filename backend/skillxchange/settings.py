@@ -6,6 +6,7 @@ import traceback
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env if present
 try:
     from dotenv import load_dotenv
     load_dotenv(os.path.join(BASE_DIR, '.env'))
@@ -14,7 +15,7 @@ except ImportError:
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-skill-x-change-platform-prod-quality-key-2026')
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '*').split(',') if h.strip()]
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
@@ -46,12 +47,13 @@ DATABASES = {
 }
 
 # --- Production MongoEngine / MongoDB Atlas Configuration ---
-ATLAS_URI = "mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority"
-MONGODB_URI = os.environ.get('MONGODB_URI', ATLAS_URI)
+DEFAULT_ATLAS_URI = "mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority"
+MONGODB_URI = os.environ.get('MONGODB_URI', DEFAULT_ATLAS_URI)
 
 try:
     import mongoengine
     
+    print(">>> Connecting MongoDB Atlas...")
     # Initialize connection pool immediately (connect=False removed)
     mongoengine.connect(
         db='skillxchange',
@@ -67,13 +69,18 @@ try:
     server_info = client.server_info()
     ping_res = client.admin.command('ping')
     
-    print(">>> MongoDB Connected Successfully")
+    print(">>> ===========================================")
+    print(">>> MongoDB Connected Successfully!")
     print(f">>> Target Database: {db.name}")
     print(f">>> MongoDB Server Version: {server_info.get('version', 'unknown')}")
+    print(f">>> Ping Status: {'OK' if ping_res.get('ok', 1.0) == 1.0 else 'FAILED'}")
+    print(">>> ===========================================")
 except Exception as e:
+    tb = traceback.format_exc()
+    print(">>> ===========================================")
     print(f"CRITICAL ERROR: Failed to connect to MongoDB Atlas at {MONGODB_URI}")
-    print(f"Traceback:\n{traceback.format_exc()}")
-    # Fail loudly on invalid connection
+    print(f"Traceback:\n{tb}")
+    print(">>> ===========================================")
     raise RuntimeError(f"MongoDB Atlas Connection Error: {e}") from e
 
 REST_FRAMEWORK = {
