@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://skillxchange-backend.onrender.com/api').replace(/\/$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://skillxchange-backend-8g8p.onrender.com/api').replace(/\/$/, '');
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
