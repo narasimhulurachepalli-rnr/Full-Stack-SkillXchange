@@ -5,8 +5,12 @@ import { useAuth } from '../context/AuthContext';
 
 export default function EmailVerify() {
   const navigate = useNavigate();
-  const { user, isAuthenticated, login, updateProfile } = useAuth();
+  const { user, isAuthenticated, updateProfile } = useAuth();
   const [cooldown, setCooldown] = useState(0);
+
+  React.useEffect(() => {
+    navigate('/dashboard', { replace: true });
+  }, [navigate]);
 
   const handleGoToDashboard = async () => {
     try {

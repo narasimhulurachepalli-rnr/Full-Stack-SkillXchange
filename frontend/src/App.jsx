@@ -51,7 +51,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/email-verify" element={<EmailVerify />} />
+          <Route path="/email-verify" element={<Navigate to="/dashboard" replace />} />
 
           {/* Protected Dashboard Workspace routes */}
           <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
