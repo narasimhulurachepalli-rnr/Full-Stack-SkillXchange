@@ -195,52 +195,14 @@ export const AuthProvider = ({ children }) => {
             return { success: false, error: errMsg };
           }
         }
+        return { 
+          success: false, 
+          error: "Could not connect to MongoDB Atlas server. Please tap Register again in a few seconds." 
+        };
       }
-
-      // 2. Local fallback registration
-      const newUser = {
-        id: "user-" + Date.now(),
-        email: email,
-        full_name: fullName,
-        bio: "Passionate learner trading skills on SkillXchange.",
-        phone: "+91 9876543210",
-        major: "Student - SkillXchange",
-        teach_skills: ["React JS", "Python", "JavaScript"],
-        learn_skills: ["UI/UX Design", "Communication"],
-        rating_avg: 5.0,
-        points: 100,
-        credits: 1,
-        credit_history: [
-          {
-            id: "tx-" + Date.now(),
-            type: "WELCOME_BONUS",
-            amount: 1,
-            description: "Welcome Skill Credit Bonus (New Account)",
-            created_at: new Date().toISOString()
-          }
-        ],
-        avatar: avatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-        role: "User",
-        is_verified: true
-      };
-
-      setUser(newUser);
-      setTokens({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() });
-      setIsAuthenticated(true);
-
-      try {
-        localStorage.setItem('skillxchange_user', JSON.stringify(newUser));
-        localStorage.setItem('skillxchange_tokens', JSON.stringify({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() }));
-        const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
-        list.push({ email: email.toLowerCase(), password, user: newUser });
-        localStorage.setItem('skillxchange_all_users', JSON.stringify(list));
-      } catch (e) {
-        console.warn("Storage notice:", e);
-      }
-
-      return { success: true };
+      return { success: false, error: "Registration response invalid." };
     } catch (err) {
-      return { success: false, error: "Registration error" };
+      return { success: false, error: err.message || "Registration error" };
     } finally {
       setIsLoading(false);
     }

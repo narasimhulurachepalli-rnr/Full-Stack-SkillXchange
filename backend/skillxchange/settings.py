@@ -53,11 +53,12 @@ try:
     MONGODB_URI = os.environ.get('MONGODB_URI', ATLAS_URI)
     mongoengine.connect(
         host=MONGODB_URI,
+        connect=False,
         serverSelectionTimeoutMS=5000,
         connectTimeoutMS=10000,
         socketTimeoutMS=10000
     )
-    print(">>> MongoDB Atlas connection successfully established.")
+    print(">>> MongoDB Atlas connection successfully configured.")
 except Exception as e:
     print(f">>> MongoEngine connection notice: {e}")
 
