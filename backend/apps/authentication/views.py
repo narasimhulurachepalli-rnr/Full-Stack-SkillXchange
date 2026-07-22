@@ -16,43 +16,66 @@ class RegisterView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            try:
-                user = serializer.save()
-                refresh = RefreshToken.for_user(user)
-                
-                # Fetch created MongoEngine document from MongoDB Atlas
-                profile = UserProfile.objects(email=user.email).first()
-                if not profile:
-                    profile = UserProfile(
-                        email=user.email,
-                        full_name=user.first_name,
-                        bio="New student member of SkillXchange community.",
-                        credits=1,
-                        rating_avg=5.0,
-                        points=100,
-                        avatar=request.data.get('avatar', "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"),
-                        role="User",
-                        is_verified=True
-                    )
-                    profile.save()
+        email = request.data.get('email', '').strip().lower()
+        full_name = request.data.get('full_name', '').strip()
+        password = request.data.get('password', '')
+        avatar = request.data.get('avatar', '')
 
-                return Response({
-                    "message": "User registered successfully.",
-                    "tokens": {
-                        "refresh": str(refresh),
-                        "access": str(refresh.access_token),
-                    },
-                    "user": profile.to_json_dict()
-                }, status=status.HTTP_201_CREATED)
-            except Exception as e:
-                print(f">>> Registration Exception: {e}")
-                return Response(
-                    {"detail": f"Registration failed to store profile in MongoDB Atlas: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        if not email or not full_name or not password:
+            return Response({"detail": "Full name, email, and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # 1. Sync Django SQLite User
+            user = User.objects.filter(username=email).first()
+            if not user:
+                user = User.objects.create_user(
+                    username=email,
+                    email=email,
+                    password=password,
+                    first_name=full_name
                 )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                user.set_password(password)
+                user.first_name = full_name
+                user.save()
+
+            refresh = RefreshToken.for_user(user)
+
+            # 2. Sync MongoEngine UserProfile in MongoDB Atlas
+            profile = UserProfile.objects(email=email).first()
+            if not profile:
+                profile = UserProfile(
+                    email=email,
+                    full_name=full_name,
+                    bio="New student member of SkillXchange community.",
+                    credits=1,
+                    rating_avg=5.0,
+                    points=100,
+                    avatar=avatar or "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+                    role="User",
+                    is_verified=True
+                )
+                profile.save()
+            else:
+                profile.full_name = full_name
+                if avatar:
+                    profile.avatar = avatar
+                profile.save()
+
+            return Response({
+                "message": "User registered successfully.",
+                "tokens": {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                },
+                "user": profile.to_json_dict()
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print(f">>> Registration Exception: {e}")
+            return Response(
+                {"detail": f"Registration error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class CustomLoginView(APIView):
     permission_classes = [AllowAny]
