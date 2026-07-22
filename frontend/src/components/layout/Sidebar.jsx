@@ -33,7 +33,7 @@ export default function Sidebar({ onItemClick }) {
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 shrink-0">
+    <aside className="w-64 h-full min-h-screen bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 shrink-0">
       {/* Brand Logo header */}
       <div className="p-6 border-b border-slate-800 flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-brand-indigo flex items-center justify-center text-white shadow-md">
@@ -84,7 +84,7 @@ export default function Sidebar({ onItemClick }) {
       </nav>
 
       {/* User summary Footer panel */}
-      <div className="p-4 border-t border-slate-800 flex flex-col gap-4">
+      <div className="p-4 border-t border-slate-800 flex flex-col gap-4 pb-24 lg:pb-4">
         {user && (
           <div className="flex items-center gap-3">
             <img 
@@ -100,7 +100,7 @@ export default function Sidebar({ onItemClick }) {
         )}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-brand-rose bg-brand-rose/10 hover:bg-brand-rose hover:text-white rounded-xl transition-all duration-200"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-brand-rose bg-brand-rose/10 hover:bg-brand-rose hover:text-white rounded-xl transition-all duration-200 cursor-pointer active:scale-95"
         >
           <LogOut className="w-4 h-4" />
           <span>Log Out</span>

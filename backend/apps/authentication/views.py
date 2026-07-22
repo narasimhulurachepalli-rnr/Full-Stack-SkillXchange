@@ -19,9 +19,27 @@ class RegisterView(APIView):
                 profile = None
                 try:
                     profile = UserProfile.objects(email=user.email).first()
-                except Exception:
-                    pass
+                except Exception as ex:
+                    print(f">>> Fetch profile exception: {ex}")
                 
+                # Proactively ensure UserProfile document exists in MongoDB Atlas
+                if not profile:
+                    try:
+                        profile = UserProfile(
+                            email=user.email,
+                            full_name=user.first_name,
+                            bio="New student member of SkillXchange community.",
+                            credits=1,
+                            rating_avg=5.0,
+                            points=100,
+                            avatar=request.data.get('avatar', "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"),
+                            role="User",
+                            is_verified=True
+                        )
+                        profile.save()
+                    except Exception as ex:
+                        print(f">>> Fallback UserProfile save notice: {ex}")
+
                 profile_data = profile.to_json_dict() if profile else {
                     "id": f"user-{user.id}",
                     "email": user.email,
@@ -30,7 +48,7 @@ class RegisterView(APIView):
                     "credits": 1,
                     "rating_avg": 5.0,
                     "points": 100,
-                    "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+                    "avatar": request.data.get('avatar', "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"),
                     "role": "User",
                     "is_verified": True
                 }
@@ -50,9 +68,29 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        profile = UserProfile.objects(email=request.user.email).first()
+        profile = None
+        try:
+            profile = UserProfile.objects(email=request.user.email).first()
+        except Exception:
+            pass
+
         if not profile:
-            return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+            # Auto-create UserProfile document if user exists in SQLite but missing in MongoDB Atlas
+            try:
+                profile = UserProfile(
+                    email=request.user.email,
+                    full_name=request.user.first_name or request.user.username.split('@')[0],
+                    bio="Student member of SkillXchange community.",
+                    credits=1,
+                    rating_avg=5.0,
+                    points=100,
+                    role="User",
+                    is_verified=True
+                )
+                profile.save()
+            except Exception as e:
+                return Response({"error": f"Profile not found and creation failed: {e}"}, status=status.HTTP_404_NOT_FOUND)
+
         return Response(profile.to_json_dict(), status=status.HTTP_200_OK)
 
     def put(self, request):

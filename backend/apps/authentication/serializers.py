@@ -7,6 +7,7 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     confirm_password = serializers.CharField(write_only=True)
+    avatar = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, data):
         if data['password'] != data['confirm_password']:
@@ -30,7 +31,8 @@ class RegisterSerializer(serializers.Serializer):
         try:
             mongo_profile = UserProfile(
                 email=validated_data['email'],
-                full_name=validated_data['full_name']
+                full_name=validated_data['full_name'],
+                avatar=validated_data.get('avatar', '')
             )
             mongo_profile.save()
         except Exception as e:

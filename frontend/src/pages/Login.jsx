@@ -13,19 +13,22 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
-      const result = login(email, password);
+      const result = await login(email, password);
       if (result && result.success) {
         navigate('/dashboard');
       } else {
-        setError('Invalid credentials.');
+        setError(result?.error || 'Invalid credentials.');
       }
     } catch (err) {
       setError('Login encountered an error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

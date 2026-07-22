@@ -39,7 +39,7 @@ export default function Register() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     setError('');
     
@@ -52,15 +52,18 @@ export default function Register() {
       return;
     }
 
+    setLoading(true);
     try {
-      const result = register(fullName, email, password, avatar);
+      const result = await register(fullName, email, password, avatar);
       if (result && result.success) {
         navigate('/email-verify');
       } else {
-        setError('Registration failed. Please try again.');
+        setError(result?.error || 'Registration failed. Please try again.');
       }
     } catch (err) {
       setError('Registration encountered an error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

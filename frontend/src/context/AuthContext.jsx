@@ -70,9 +70,59 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const login = (email, password) => {
+  const login = async (email, password) => {
     setIsLoading(true);
     try {
+      // 1. Try real backend JWT authentication
+      try {
+        const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
+          username: email,
+          password: password
+        }, { timeout: 6000 });
+
+        if (response.data && response.data.access) {
+          const authTokens = { access: response.data.access, refresh: response.data.refresh };
+          
+          let profileUser = null;
+          try {
+            const profRes = await axios.get(`${API_BASE_URL}/auth/profile/`, {
+              headers: { Authorization: `Bearer ${authTokens.access}` },
+              timeout: 6000
+            });
+            profileUser = profRes.data;
+          } catch (pErr) {
+            console.warn("Profile fetch warning:", pErr);
+          }
+
+          if (!profileUser) {
+            profileUser = {
+              id: "user-" + Date.now(),
+              email: email,
+              full_name: email.includes('@') ? email.split('@')[0] : email,
+              bio: "SkillXchange member.",
+              credits: 1,
+              rating_avg: 5.0,
+              points: 100,
+              avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+              role: "User",
+              is_verified: true
+            };
+          }
+
+          setUser(profileUser);
+          setTokens(authTokens);
+          setIsAuthenticated(true);
+
+          localStorage.setItem('skillxchange_user', JSON.stringify(profileUser));
+          localStorage.setItem('skillxchange_tokens', JSON.stringify(authTokens));
+
+          return { success: true };
+        }
+      } catch (apiErr) {
+        console.warn("Backend login API notice, attempting local fallback:", apiErr);
+      }
+
+      // 2. Local fallback
       let loggedUser = null;
       try {
         const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
@@ -106,9 +156,48 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = (fullName, email, password, avatar = null) => {
+  const register = async (fullName, email, password, avatar = null) => {
     setIsLoading(true);
     try {
+      // 1. Send registration data to backend API (Django SQLite & MongoDB Atlas)
+      try {
+        const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
+          full_name: fullName,
+          email: email,
+          password: password,
+          confirm_password: password,
+          avatar: avatar || ""
+        }, { timeout: 8000 });
+
+        if (response.data && response.data.tokens) {
+          const registeredUser = response.data.user;
+          const authTokens = response.data.tokens;
+
+          setUser(registeredUser);
+          setTokens(authTokens);
+          setIsAuthenticated(true);
+
+          localStorage.setItem('skillxchange_user', JSON.stringify(registeredUser));
+          localStorage.setItem('skillxchange_tokens', JSON.stringify(authTokens));
+
+          const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
+          list.push({ email: email.toLowerCase(), password, user: registeredUser });
+          localStorage.setItem('skillxchange_all_users', JSON.stringify(list));
+
+          return { success: true };
+        }
+      } catch (apiErr) {
+        console.warn("Backend API registration notice:", apiErr);
+        if (apiErr.response && apiErr.response.data) {
+          const data = apiErr.response.data;
+          const errMsg = data.detail || (data.email ? data.email[0] : null) || (data.password ? data.password[0] : null);
+          if (errMsg) {
+            return { success: false, error: errMsg };
+          }
+        }
+      }
+
+      // 2. Local fallback registration
       const newUser = {
         id: "user-" + Date.now(),
         email: email,

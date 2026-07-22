@@ -4,10 +4,10 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { useAuth } from '../context/AuthContext';
 import { MOCK_USERS, MOCK_REVIEWS } from '../utils/mockData';
 import { api } from '../services/api';
-import { Star, MessageSquare, BookOpen, Calendar, Mail, FileText, ArrowRight, X } from 'lucide-react';
+import { Star, MessageSquare, BookOpen, Calendar, Mail, FileText, ArrowRight, X, LogOut } from 'lucide-react';
 
 export default function UserProfile() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('about');
@@ -144,8 +144,18 @@ export default function UserProfile() {
                 </div>
               </div>
 
-              {/* Action row (only display if viewing others) */}
-              {!isSelf && (
+              {/* Action row (display LogOut if self, or Message/Propose if viewing others) */}
+              {isSelf ? (
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={logout}
+                    className="px-5 py-2.5 bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-all active:scale-95 duration-200 cursor-pointer shadow-sm"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Log Out
+                  </button>
+                </div>
+              ) : (
                 <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <button
                     onClick={() => navigate(`/chat?partner=${userProfile.email}`)}

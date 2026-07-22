@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
-import { Menu, Bell, Search, Star } from 'lucide-react';
+import { Menu, Bell, Search, Star, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { DEFAULT_AVATAR } from '../../utils/imageUtils';
 import { useNavigate, Link } from 'react-router-dom';
 
 export default function DashboardLayout({ children }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -71,7 +71,7 @@ export default function DashboardLayout({ children }) {
 
           {/* Quick profile actions */}
           {user && (
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Skill Credit balance badge */}
               <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-600 rounded-full text-xs font-extrabold shadow-sm">
                 <span>🪙</span>
@@ -99,6 +99,16 @@ export default function DashboardLayout({ children }) {
                 />
                 <span className="hidden md:inline text-sm font-semibold text-slate-700">{user.full_name.split(' ')[0]}</span>
               </Link>
+
+              {/* Mobile & Header LogOut Button */}
+              <button
+                onClick={logout}
+                title="Log Out"
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-600 hover:text-white transition-all duration-200 active:scale-95 cursor-pointer ml-1"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
             </div>
           )}
         </header>

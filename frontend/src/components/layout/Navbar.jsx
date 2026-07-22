@@ -24,19 +24,19 @@ export default function Navbar() {
         <a href="#contact" className="text-sm font-medium text-brand-slate hover:text-brand-indigo transition-colors">Contact</a>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4">
         {isAuthenticated ? (
           <>
             {/* Skill Credit balance badge */}
-            <Link to="/wallet" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer">
+            <Link to="/wallet" className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-500 hover:bg-amber-500/20 rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-              <span>🪙 {user?.credits ?? 1} Skill Credit{user?.credits === 1 ? '' : 's'}</span>
+              <span>🪙 {user?.credits ?? 1} Credit{user?.credits === 1 ? '' : 's'}</span>
             </Link>
 
-            <Link to="/dashboard" className="px-5 py-2 text-sm font-semibold text-white bg-brand-indigo rounded-xl shadow-md hover:bg-brand-indigo/90 transition-all active:scale-95 duration-200">
+            <Link to="/dashboard" className="px-3.5 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-semibold text-white bg-brand-indigo rounded-xl shadow-md hover:bg-brand-indigo/90 transition-all active:scale-95 duration-200">
               Dashboard
             </Link>
-            <button onClick={logout} className="px-4 py-2 text-sm font-semibold text-brand-rose border border-brand-rose/20 rounded-xl hover:bg-brand-rose/5 transition-all">
+            <button onClick={logout} className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-600 hover:text-white transition-all cursor-pointer">
               Logout
             </button>
           </>
