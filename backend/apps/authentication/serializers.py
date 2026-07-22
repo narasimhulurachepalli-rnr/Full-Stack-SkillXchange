@@ -10,33 +10,44 @@ class RegisterSerializer(serializers.Serializer):
     avatar = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, data):
+        email_str = data['email'].strip().lower()
+        data['email'] = email_str
+
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({"password": "Passwords do not match."})
         
-        if User.objects.filter(username=data['email']).exists():
+        if User.objects.filter(username=email_str).exists() or UserProfile.objects(email=email_str).first():
             raise serializers.ValidationError({"email": "User with this email already exists."})
         
         return data
 
     def create(self, validated_data):
+        email = validated_data['email'].strip().lower()
+        full_name = validated_data['full_name'].strip()
+
         # Create standard Django user in SQLite
         django_user = User.objects.create_user(
-            username=validated_data['email'],
-            email=validated_data['email'],
+            username=email,
+            email=email,
             password=validated_data['password'],
-            first_name=validated_data['full_name']
+            first_name=full_name
         )
         
-        # Create corresponding MongoEngine profile in MongoDB
-        try:
+        # Mandatory MongoEngine profile save in MongoDB Atlas
+        mongo_profile = UserProfile.objects(email=email).first()
+        if not mongo_profile:
             mongo_profile = UserProfile(
-                email=validated_data['email'],
-                full_name=validated_data['full_name'],
-                avatar=validated_data.get('avatar', '')
+                email=email,
+                full_name=full_name,
+                bio="New student member of SkillXchange community.",
+                credits=1,
+                rating_avg=5.0,
+                points=100,
+                avatar=validated_data.get('avatar', "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"),
+                role="User",
+                is_verified=True
             )
             mongo_profile.save()
-        except Exception as e:
-            print(f">>> MongoEngine profile save notice: {e}")
         
         return django_user
 

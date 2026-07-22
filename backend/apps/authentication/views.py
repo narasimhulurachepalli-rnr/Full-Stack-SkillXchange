@@ -16,52 +16,37 @@ class RegisterView(APIView):
             try:
                 user = serializer.save()
                 refresh = RefreshToken.for_user(user)
-                profile = None
-                try:
-                    profile = UserProfile.objects(email=user.email).first()
-                except Exception as ex:
-                    print(f">>> Fetch profile exception: {ex}")
                 
-                # Proactively ensure UserProfile document exists in MongoDB Atlas
+                # Fetch created MongoEngine document from MongoDB Atlas
+                profile = UserProfile.objects(email=user.email).first()
                 if not profile:
-                    try:
-                        profile = UserProfile(
-                            email=user.email,
-                            full_name=user.first_name,
-                            bio="New student member of SkillXchange community.",
-                            credits=1,
-                            rating_avg=5.0,
-                            points=100,
-                            avatar=request.data.get('avatar', "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"),
-                            role="User",
-                            is_verified=True
-                        )
-                        profile.save()
-                    except Exception as ex:
-                        print(f">>> Fallback UserProfile save notice: {ex}")
+                    profile = UserProfile(
+                        email=user.email,
+                        full_name=user.first_name,
+                        bio="New student member of SkillXchange community.",
+                        credits=1,
+                        rating_avg=5.0,
+                        points=100,
+                        avatar=request.data.get('avatar', "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"),
+                        role="User",
+                        is_verified=True
+                    )
+                    profile.save()
 
-                profile_data = profile.to_json_dict() if profile else {
-                    "id": f"user-{user.id}",
-                    "email": user.email,
-                    "full_name": user.first_name,
-                    "bio": "New student member of SkillXchange community.",
-                    "credits": 1,
-                    "rating_avg": 5.0,
-                    "points": 100,
-                    "avatar": request.data.get('avatar', "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"),
-                    "role": "User",
-                    "is_verified": True
-                }
                 return Response({
                     "message": "User registered successfully.",
                     "tokens": {
                         "refresh": str(refresh),
                         "access": str(refresh.access_token),
                     },
-                    "user": profile_data
+                    "user": profile.to_json_dict()
                 }, status=status.HTTP_201_CREATED)
             except Exception as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                print(f">>> Registration Exception: {e}")
+                return Response(
+                    {"detail": f"Registration failed to store profile in MongoDB Atlas: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ProfileView(APIView):
