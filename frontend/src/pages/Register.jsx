@@ -223,10 +223,17 @@ export default function Register() {
 
             <button
               type="submit"
-              className="w-full py-3 bg-brand-indigo hover:bg-brand-indigo/90 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-indigo/20 transition-all active:scale-95 duration-200 mt-4 cursor-pointer"
+              disabled={loading}
+              className="w-full py-3 bg-brand-indigo hover:bg-brand-indigo/90 disabled:opacity-50 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-brand-indigo/20 transition-all active:scale-95 duration-200 mt-4 cursor-pointer"
             >
-              Register
-              <ArrowRight className="w-4 h-4" />
+              {loading ? (
+                <span>Registering &amp; Syncing Atlas DB...</span>
+              ) : (
+                <>
+                  <span>Register</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
 

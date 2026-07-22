@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
         const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
           username: email,
           password: password
-        }, { timeout: 6000 });
+        }, { timeout: 45000 });
 
         if (response.data && response.data.access) {
           const authTokens = { access: response.data.access, refresh: response.data.refresh };
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }) => {
           try {
             const profRes = await axios.get(`${API_BASE_URL}/auth/profile/`, {
               headers: { Authorization: `Bearer ${authTokens.access}` },
-              timeout: 6000
+              timeout: 45000
             });
             profileUser = profRes.data;
           } catch (pErr) {
@@ -167,7 +167,7 @@ export const AuthProvider = ({ children }) => {
           password: password,
           confirm_password: password,
           avatar: avatar || ""
-        }, { timeout: 8000 });
+        }, { timeout: 45000 });
 
         if (response.data && response.data.tokens) {
           const registeredUser = response.data.user;

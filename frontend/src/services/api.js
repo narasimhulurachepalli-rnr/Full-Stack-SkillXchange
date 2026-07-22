@@ -4,7 +4,7 @@ export const API_BASE_URL = (import.meta.env.VITE_API_URL || 'https://skillxchan
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 45000,
 });
 
 apiClient.interceptors.response.use(
