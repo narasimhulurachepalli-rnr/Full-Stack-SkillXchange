@@ -7,10 +7,10 @@ import {
 import { 
   cropToSquareBase64, validateImageFile, DEFAULT_AVATAR 
 } from '../utils/imageUtils';
-import { Palette, Check, Sparkles, Upload, Trash2, Camera, AlertCircle } from 'lucide-react';
+import { Palette, Check, Sparkles, Upload, Trash2, Camera, AlertCircle, LogOut } from 'lucide-react';
 
 export default function Settings() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, logout } = useAuth();
   const { 
     themeMode, setThemeMode, 
     accentColor, setAccentColor, 
@@ -310,6 +310,22 @@ export default function Settings() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* 3. Dedicated Log Out Card */}
+        <div className="bg-rose-50 border border-rose-200 rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="space-y-1 text-center sm:text-left">
+            <h3 className="text-base font-bold text-rose-900 font-outfit">Log Out of Account</h3>
+            <p className="text-xs text-rose-600">Sign out of your active SkillXchange session on this device.</p>
+          </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="w-full sm:w-auto px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-rose-600/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Log Out Account</span>
+          </button>
         </div>
       </div>
     </DashboardLayout>
