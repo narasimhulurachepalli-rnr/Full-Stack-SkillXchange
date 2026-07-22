@@ -8,6 +8,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from apps.authentication.models import UserProfile
 from apps.authentication.serializers import RegisterSerializer, UserProfileSerializer
+from apps.wallet.views import get_or_create_wallet
 from django.contrib.auth.models import User
 
 class PingView(APIView):
@@ -122,6 +123,12 @@ class RegisterView(APIView):
             profile.save()
             assert profile.id is not None, "Profile ID generation failed after save()"
 
+            # Auto-initialize Wallet document in MongoDB Atlas
+            try:
+                get_or_create_wallet(email)
+            except Exception as w_err:
+                print(f">>> Wallet auto-creation warning: {w_err}")
+
             total_count = UserProfile.objects.count()
             print(f">>> MongoDB Atlas Save Success! Profile ID: {profile.id}")
             print(f">>> Total UserProfile Document Count in Atlas: {total_count}")
@@ -192,6 +199,11 @@ class CustomLoginView(APIView):
                         is_verified=True
                     )
                     profile.save()
+
+                try:
+                    get_or_create_wallet(email)
+                except Exception as w_err:
+                    print(f">>> Wallet auto-creation on login warning: {w_err}")
 
                 return Response({
                     "access": str(refresh.access_token),

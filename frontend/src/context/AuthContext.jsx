@@ -253,9 +253,25 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/login';
   };
 
-  const updateProfile = (profileData) => {
+  const updateProfile = async (profileData) => {
     try {
-      const updated = { ...user, ...profileData };
+      let updated = { ...user, ...profileData };
+
+      // Persistent API update directly to MongoDB Atlas
+      if (tokens && tokens.access && tokens.access !== "mock" && !tokens.access.startsWith("token_")) {
+        try {
+          const res = await axios.put(`${API_BASE_URL}/auth/profile/`, profileData, {
+            headers: { Authorization: `Bearer ${tokens.access}` },
+            timeout: 60000
+          });
+          if (res.data) {
+            updated = { ...updated, ...res.data };
+          }
+        } catch (apiErr) {
+          console.warn("MongoDB profile update notice:", apiErr);
+        }
+      }
+
       setUser(updated);
 
       try {
@@ -270,15 +286,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (e) {}
 
-      // Non-blocking background API update if real JWT token is present
-      if (tokens && tokens.access && tokens.access !== "mock" && !tokens.access.startsWith("token_")) {
-        axios.put(`${API_BASE_URL}/auth/profile/`, profileData, {
-          headers: { Authorization: `Bearer ${tokens.access}` },
-          timeout: 2000
-        }).catch(() => {});
-      }
-
-      return { success: true };
+      return { success: true, user: updated };
     } catch (error) {
       return { success: false, error: "Failed to update profile" };
     }

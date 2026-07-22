@@ -23,10 +23,12 @@ apiClient.interceptors.response.use(
 const getHeaders = () => {
   const tokenData = localStorage.getItem('skillxchange_tokens');
   if (tokenData) {
-    const { access } = JSON.parse(tokenData);
-    if (access && access !== "mock") {
-      return { Authorization: `Bearer ${access}` };
-    }
+    try {
+      const { access } = JSON.parse(tokenData);
+      if (access && access !== "mock" && !access.startsWith("token_") && !access.startsWith("ref_")) {
+        return { Authorization: `Bearer ${access}` };
+      }
+    } catch (e) {}
   }
   return {};
 };

@@ -60,7 +60,14 @@ export default function UserProfile() {
     const senderEmail = currentUser?.email || "nandini@email.com";
     const receiverEmail = userProfile.email;
     
-    const newExchange = {
+    let createdExchangeData = null;
+    try {
+      createdExchangeData = await api.createExchange(receiverEmail, selectedLearnSkill, selectedTeachSkill, proposalMessage);
+    } catch (err) {
+      console.warn("Backend request create notice:", err);
+    }
+
+    const newExchange = createdExchangeData || {
       id: `ex-${Date.now()}`,
       sender_email: senderEmail,
       receiver_email: receiverEmail,
@@ -74,18 +81,12 @@ export default function UserProfile() {
     };
 
     try {
-      await api.createExchange(receiverEmail, selectedLearnSkill, selectedTeachSkill, proposalMessage);
-    } catch (err) {
-      console.warn("Backend request create failed or mock mode in use, saving locally:", err);
-    }
-
-    try {
       const existingStr = localStorage.getItem('skillxchange_custom_exchanges');
       const existing = existingStr ? JSON.parse(existingStr) : [];
       const updated = [newExchange, ...existing];
       localStorage.setItem('skillxchange_custom_exchanges', JSON.stringify(updated));
     } catch (err) {
-      console.error("Failed to save exchange to localStorage:", err);
+      console.error("Failed to sync exchange in localStorage cache:", err);
     }
 
     setRequestSuccess(true);

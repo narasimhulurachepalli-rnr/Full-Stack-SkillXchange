@@ -59,9 +59,9 @@ export default function Settings() {
     await updateProfile({ avatar: DEFAULT_AVATAR });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateProfile({
+    await updateProfile({
       full_name: name,
       bio,
       phone,
