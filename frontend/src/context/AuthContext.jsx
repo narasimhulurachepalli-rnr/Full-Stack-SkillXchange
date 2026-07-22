@@ -72,85 +72,31 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     setIsLoading(true);
+    const lowerEmail = (email || '').trim().toLowerCase();
     try {
-      // 1. Try real backend JWT authentication
-      try {
-        const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
-          username: email,
-          password: password
-        }, { timeout: 75000 });
+      const response = await axios.post(`${API_BASE_URL}/auth/login/`, {
+        username: lowerEmail,
+        password: password
+      }, { timeout: 90000 });
 
-        if (response.data && response.data.access) {
-          const authTokens = { access: response.data.access, refresh: response.data.refresh };
-          
-          let profileUser = null;
-          try {
-            const profRes = await axios.get(`${API_BASE_URL}/auth/profile/`, {
-              headers: { Authorization: `Bearer ${authTokens.access}` },
-              timeout: 75000
-            });
-            profileUser = profRes.data;
-          } catch (pErr) {
-            console.warn("Profile fetch warning:", pErr);
-          }
+      if (response.data && response.data.access) {
+        const authTokens = { access: response.data.access, refresh: response.data.refresh };
+        const profileUser = response.data.user;
 
-          if (!profileUser) {
-            profileUser = {
-              id: "user-" + Date.now(),
-              email: email,
-              full_name: email.includes('@') ? email.split('@')[0] : email,
-              bio: "SkillXchange member.",
-              credits: 1,
-              rating_avg: 5.0,
-              points: 100,
-              avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-              role: "User",
-              is_verified: true
-            };
-          }
+        setUser(profileUser);
+        setTokens(authTokens);
+        setIsAuthenticated(true);
 
-          setUser(profileUser);
-          setTokens(authTokens);
-          setIsAuthenticated(true);
+        localStorage.setItem('skillxchange_user', JSON.stringify(profileUser));
+        localStorage.setItem('skillxchange_tokens', JSON.stringify(authTokens));
 
-          localStorage.setItem('skillxchange_user', JSON.stringify(profileUser));
-          localStorage.setItem('skillxchange_tokens', JSON.stringify(authTokens));
-
-          return { success: true };
-        }
-      } catch (apiErr) {
-        console.warn("Backend login API notice, attempting local fallback:", apiErr);
+        return { success: true, user: profileUser };
       }
-
-      // 2. Local fallback
-      let loggedUser = null;
-      try {
-        const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
-        const found = list.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
-        if (found && found.user) loggedUser = found.user;
-      } catch (e) {}
-
-      if (!loggedUser) {
-        loggedUser = {
-          ...mockUser,
-          id: "user-" + Date.now(),
-          email: email,
-          full_name: email.includes('@') ? email.split('@')[0].toUpperCase() : email,
-          credits: 1,
-          is_verified: true
-        };
-      }
-
-      setUser(loggedUser);
-      setTokens({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() });
-      setIsAuthenticated(true);
-
-      try {
-        localStorage.setItem('skillxchange_user', JSON.stringify(loggedUser));
-        localStorage.setItem('skillxchange_tokens', JSON.stringify({ access: "token_" + Date.now(), refresh: "ref_" + Date.now() }));
-      } catch (e) {}
-
-      return { success: true };
+      return { success: false, error: response.data?.detail || "Invalid login credentials." };
+    } catch (apiErr) {
+      console.warn("Backend login API notice:", apiErr);
+      const msg = apiErr.response?.data?.detail || apiErr.message || "Login failed to connect to backend server.";
+      return { success: false, error: msg };
     } finally {
       setIsLoading(false);
     }
@@ -161,84 +107,32 @@ export const AuthProvider = ({ children }) => {
     const lowerEmail = (email || '').trim().toLowerCase();
     
     try {
-      // 1. Try real backend API registration
-      try {
-        const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
-          full_name: fullName,
-          email: lowerEmail,
-          password: password,
-          confirm_password: password,
-          avatar: avatar || ""
-        }, { timeout: 75000 });
-
-        if (response.data && response.data.tokens) {
-          const registeredUser = response.data.user;
-          const authTokens = response.data.tokens;
-
-          setUser(registeredUser);
-          setTokens(authTokens);
-          setIsAuthenticated(true);
-
-          localStorage.setItem('skillxchange_user', JSON.stringify(registeredUser));
-          localStorage.setItem('skillxchange_tokens', JSON.stringify(authTokens));
-
-          const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
-          if (!list.some(u => u.email === lowerEmail)) {
-            list.push({ email: lowerEmail, password, user: registeredUser });
-            localStorage.setItem('skillxchange_all_users', JSON.stringify(list));
-          }
-
-          return { success: true };
-        }
-      } catch (apiErr) {
-        console.warn("Backend API registration notice, activating background sync:", apiErr);
-        
-        // Retry in background to guarantee MongoDB Atlas persistence
-        setTimeout(() => {
-          axios.post(`${API_BASE_URL}/auth/register/`, {
-            full_name: fullName,
-            email: lowerEmail,
-            password: password,
-            confirm_password: password,
-            avatar: avatar || ""
-          }, { timeout: 75000 }).catch(() => {});
-        }, 2000);
-      }
-
-      // 2. Fallback: Create instant local user session so app never fails
-      const newUser = {
-        id: "user-" + Date.now(),
-        email: lowerEmail,
+      const response = await axios.post(`${API_BASE_URL}/auth/register/`, {
         full_name: fullName,
-        bio: "New student member of SkillXchange community.",
-        credits: 1,
-        rating_avg: 5.0,
-        points: 100,
-        avatar: avatar || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-        role: "User",
-        is_verified: true,
-        teach_skills: [],
-        learn_skills: []
-      };
+        email: lowerEmail,
+        password: password,
+        confirm_password: password,
+        avatar: avatar || ""
+      }, { timeout: 90000 });
 
-      const localTokens = { access: "token_" + Date.now(), refresh: "ref_" + Date.now() };
+      if (response.data && response.data.tokens) {
+        const registeredUser = response.data.user;
+        const authTokens = response.data.tokens;
 
-      setUser(newUser);
-      setTokens(localTokens);
-      setIsAuthenticated(true);
+        setUser(registeredUser);
+        setTokens(authTokens);
+        setIsAuthenticated(true);
 
-      try {
-        localStorage.setItem('skillxchange_user', JSON.stringify(newUser));
-        localStorage.setItem('skillxchange_tokens', JSON.stringify(localTokens));
+        localStorage.setItem('skillxchange_user', JSON.stringify(registeredUser));
+        localStorage.setItem('skillxchange_tokens', JSON.stringify(authTokens));
 
-        const list = JSON.parse(localStorage.getItem('skillxchange_all_users') || '[]');
-        if (!list.some(u => u.email === lowerEmail)) {
-          list.push({ email: lowerEmail, password, user: newUser });
-          localStorage.setItem('skillxchange_all_users', JSON.stringify(list));
-        }
-      } catch (e) {}
-
-      return { success: true };
+        return { success: true, user: registeredUser, atlas_id: response.data.atlas_document_id };
+      }
+      return { success: false, error: response.data?.detail || "Registration failed." };
+    } catch (apiErr) {
+      console.warn("Backend API registration notice:", apiErr);
+      const msg = apiErr.response?.data?.detail || apiErr.message || "Registration failed to connect to backend server.";
+      return { success: false, error: msg };
     } finally {
       setIsLoading(false);
     }
