@@ -56,7 +56,7 @@ export default function Register() {
     try {
       const result = await register(fullName, email, password, avatar);
       if (result && result.success) {
-        navigate('/email-verify');
+        navigate('/dashboard');
       } else {
         setError(result?.error || 'Registration failed. Please try again.');
       }
