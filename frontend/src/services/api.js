@@ -32,6 +32,14 @@ const getHeaders = () => {
 };
 
 export const api = {
+  pingServer: async () => {
+    try {
+      await axios.get(`${API_BASE_URL}/auth/ping/`, { timeout: 15000 });
+    } catch (e) {
+      console.warn("Warm-up ping sent to Render backend");
+    }
+  },
+
   // Skills explorer endpoints
   searchUsers: async (searchQuery = '', type = '', major = '', rating = '') => {
     try {

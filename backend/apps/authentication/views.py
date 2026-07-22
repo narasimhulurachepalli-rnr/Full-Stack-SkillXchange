@@ -7,6 +7,11 @@ from apps.authentication.models import UserProfile
 from apps.authentication.serializers import RegisterSerializer, UserProfileSerializer
 from django.contrib.auth.models import User
 
+class PingView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        return Response({"status": "healthy", "atlas": "connected"}, status=status.HTTP_200_OK)
+
 class RegisterView(APIView):
     permission_classes = [AllowAny]
 

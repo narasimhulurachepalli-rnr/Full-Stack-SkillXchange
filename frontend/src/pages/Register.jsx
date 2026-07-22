@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../services/api';
 import { 
   cropToSquareBase64, validateImageFile, DEFAULT_AVATAR 
 } from '../utils/imageUtils';
@@ -19,6 +20,11 @@ export default function Register() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Proactively warm up backend container and MongoDB Atlas connection
+    api.pingServer();
+  }, []);
 
   const handlePhotoSelect = async (e) => {
     const file = e.target.files[0];
