@@ -1,6 +1,8 @@
 from django.urls import path, include
+from apps.authentication.views import MongoDBDebugView
 
 urlpatterns = [
+    path('api/debug/mongodb/', MongoDBDebugView.as_view(), name='root_mongodb_debug'),
     path('api/auth/', include('apps.authentication.urls')),
     path('api/skills/', include('apps.skills.urls')),
     path('api/exchanges/', include('apps.exchanges.urls')),
