@@ -17,7 +17,7 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [avatar, setAvatar] = useState(DEFAULT_AVATAR);
-  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
