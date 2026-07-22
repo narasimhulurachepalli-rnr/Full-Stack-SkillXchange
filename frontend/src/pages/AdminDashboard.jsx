@@ -12,7 +12,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [actionMsg, setActionMsg] = useState('');
 
-  const isOwnerAdmin = user?.email?.toLowerCase() === 'nandini@email.com' || user?.email?.toLowerCase() === 'admin@skillxchange.com';
+  const isOwnerAdmin = user?.email?.toLowerCase() === 'rachepallinandini@gmail.com' || user?.email?.toLowerCase() === 'nandini@email.com' || user?.email?.toLowerCase() === 'admin@skillxchange.com' || user?.role === 'Admin';
 
   if (!isOwnerAdmin) {
     return (

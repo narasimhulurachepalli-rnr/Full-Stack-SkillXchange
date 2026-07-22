@@ -50,6 +50,20 @@ def seed():
     # Users
     users = [
         {
+            "email": "rachepallinandini@gmail.com",
+            "full_name": "Nandini Rachepalli",
+            "bio": "Platform Owner & Administrator of SkillXchange community.",
+            "phone": "+91 9876543210",
+            "major": "CSE - MITS Madanapalle (Platform Owner)",
+            "teach_skills": ["Python", "React JS", "Data Structures", "Full Stack Web"],
+            "learn_skills": ["UI/UX Design", "Machine Learning", "System Design"],
+            "rating_avg": 5.0,
+            "points": 1500,
+            "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+            "role": "Admin",
+            "is_verified": True
+        },
+        {
             "email": "nandini@email.com",
             "full_name": "Nandini R",
             "bio": "Passionate learner and enthusiast about teaching and learning new skills.",
@@ -60,7 +74,7 @@ def seed():
             "rating_avg": 4.6,
             "points": 320,
             "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
-            "role": "User",
+            "role": "Admin",
             "is_verified": True
         },
         {
