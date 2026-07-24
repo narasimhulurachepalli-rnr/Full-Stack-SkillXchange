@@ -64,14 +64,14 @@ export default function Sidebar({ onItemClick }) {
           </NavLink>
         ))}
 
-        {/* Exclusive Owner Admin Tab */}
+        {/* Exclusive Owner Admin Tab - Strictly hidden from regular users */}
         {(user?.role === 'Admin' || 
           user?.email?.toLowerCase().includes('rachepallinandini') || 
           user?.email?.toLowerCase().includes('nandini') || 
           user?.full_name?.toLowerCase().includes('rachepallinandini') || 
           user?.email?.toLowerCase() === 'admin@skillxchange.com') && (
           <NavLink
-            to="/admin"
+            to="/secret-admin-portal"
             onClick={onItemClick}
             className={({ isActive }) => 
               `flex items-center gap-3 px-4 py-3 text-sm font-semibold rounded-xl transition-all duration-200 ${

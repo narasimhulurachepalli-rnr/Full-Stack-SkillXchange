@@ -5,12 +5,20 @@ import django
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'skillxchange.settings')
 django.setup()
-
+import mongoengine
 from apps.authentication.models import UserProfile
 from apps.skills.models import Category, Skill
 
 def seed():
     print(">>> Seeding MongoDB Atlas cluster with initial SkillXchange data...")
+
+    db = mongoengine.connection.get_db()
+    try:
+        db.skills.delete_many({"name": None})
+        db.categories.delete_many({"name": None})
+        db.user_profiles.delete_many({"email": None})
+    except Exception as clean_err:
+        print(f">>> Pre-seed clean warning: {clean_err}")
 
     # Categories
     categories = [

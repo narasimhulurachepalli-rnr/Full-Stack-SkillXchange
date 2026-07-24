@@ -38,7 +38,30 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
+// Stealth Route Guard Wrapper for Admin Panel (Redirects regular users to /dashboard)
+const AdminRoute = ({ children }) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+        <p className="text-sm font-semibold uppercase tracking-widest animate-pulse">Checking permissions...</p>
+      </div>
+    );
+  }
+
+  const isOwnerAdmin = isAuthenticated && user && (
+    user.role === 'Admin' || 
+    user.email?.toLowerCase().includes('rachepallinandini') || 
+    user.email?.toLowerCase().includes('nandini') || 
+    user.full_name?.toLowerCase().includes('rachepallinandini') || 
+    user.email?.toLowerCase() === 'admin@skillxchange.com'
+  );
+
+  return isOwnerAdmin ? children : <Navigate to="/dashboard" replace />;
 };
 
 export default function App() {
@@ -69,7 +92,10 @@ export default function App() {
           <Route path="/leaderboard" element={<PrivateRoute><Leaderboard /></PrivateRoute>} />
           <Route path="/wallet" element={<PrivateRoute><Wallet /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
-          <Route path="/admin" element={<PrivateRoute><AdminDashboard /></PrivateRoute>} />
+          
+          {/* Secret / Stealth Admin Suite Routes */}
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/secret-admin-portal" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
 
           {/* Catch-all fallback */}
           <Route path="*" element={<Navigate to="/" />} />

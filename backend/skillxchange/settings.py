@@ -47,8 +47,15 @@ DATABASES = {
 }
 
 # --- Production MongoEngine / MongoDB Atlas Configuration ---
-DEFAULT_ATLAS_URI = "mongodb+srv://rachepallinandini_db_user:Nandini2005@cluster0.dli41nw.mongodb.net/skillxchange?retryWrites=true&w=majority"
+DEFAULT_ATLAS_URI = "mongodb+srv://likithakuchi:%40kuchi1234@cluster0.md537nh.mongodb.net/skillxchange?retryWrites=true&w=majority"
 MONGODB_URI = os.environ.get('MONGODB_URI', DEFAULT_ATLAS_URI)
+
+try:
+    import dns.resolver
+    dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+    dns.resolver.default_resolver.nameservers = ['8.8.8.8', '1.1.1.1']
+except Exception:
+    pass
 
 try:
     import mongoengine
