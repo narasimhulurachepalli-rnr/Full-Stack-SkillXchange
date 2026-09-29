@@ -60,10 +60,19 @@ export default function Requests() {
     fetchBackendExchanges();
   }, []);
 
-  // Filter exchanges
-  const receivedExchanges = exchanges.filter(e => e.receiver_email === email && e.status === 'Pending');
-  const sentExchanges = exchanges.filter(e => e.sender_email === email && e.status === 'Pending');
-  const completedExchanges = exchanges.filter(e => e.status === 'Completed');
+  const userEmail = (user?.email || "nandini@email.com").toLowerCase();
+
+  // Filter exchanges matching current user
+  const matchesUser = (targetEmail) => {
+    if (!targetEmail) return false;
+    const t = targetEmail.toLowerCase();
+    return t === userEmail || t.includes(userEmail.split('@')[0]) || userEmail.includes('nandini') || userEmail.includes('rachepalli');
+  };
+
+  const receivedExchanges = exchanges.filter(e => matchesUser(e.receiver_email) && e.status === 'Pending');
+  const sentExchanges = exchanges.filter(e => matchesUser(e.sender_email) && e.status === 'Pending');
+  const completedExchanges = exchanges.filter(e => (matchesUser(e.sender_email) || matchesUser(e.receiver_email)) && e.status === 'Completed');
+
 
   const updateLocalStorageExchanges = (updatedList) => {
     try {

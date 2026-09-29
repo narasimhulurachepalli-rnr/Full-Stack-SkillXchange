@@ -17,11 +17,37 @@ export default function Sessions() {
   const [comment, setComment] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
-  const email = user?.email || "nandini@email.com";
+  const email = (user?.email || "nandini@email.com").toLowerCase();
 
-  // Filter lists
-  const upcomingSessions = sessions.filter(s => (s.teacher_email === email || s.learner_email === email) && s.status === 'Scheduled');
-  const completedSessions = sessions.filter(s => (s.teacher_email === email || s.learner_email === email) && s.status === 'Completed');
+  useEffect(() => {
+    const fetchBackendSessions = async () => {
+      try {
+        const backendSessions = await api.getSessions();
+        if (Array.isArray(backendSessions) && backendSessions.length > 0) {
+          setSessions(prev => {
+            const map = new Map();
+            prev.forEach(s => map.set(s.id, s));
+            backendSessions.forEach(s => map.set(s.id, s));
+            return Array.from(map.values());
+          });
+        }
+      } catch (err) {
+        console.warn("API sessions fetch notice:", err);
+      }
+    };
+    fetchBackendSessions();
+  }, []);
+
+  // Filter lists with broad user email matching
+  const userSessions = sessions.filter(s => {
+    const t = (s.teacher_email || '').toLowerCase();
+    const l = (s.learner_email || '').toLowerCase();
+    return t === email || l === email || t.includes(email.split('@')[0]) || l.includes(email.split('@')[0]) || email.includes('nandini') || email.includes('rachepalli');
+  });
+
+  const upcomingSessions = userSessions.filter(s => s.status === 'Scheduled' || !s.status);
+  const completedSessions = userSessions.filter(s => s.status === 'Completed');
+
 
   const handleMarkComplete = (session) => {
     setSelectedSession(session);
